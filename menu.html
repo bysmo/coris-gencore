@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Messages SWIFT - Menu Principal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1a5490, #2c7cc1);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header i {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .badge {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .menu-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #1a5490;
+            display: block;
+        }
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #2c7cc1;
+        }
+        .menu-item i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #2c7cc1;
+        }
+        .menu-item h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        .menu-item p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .primary-action {
+            background: linear-gradient(135deg, #1a5490, #2c7cc1);
+            color: white;
+            border-color: #1a5490;
+        }
+        .primary-action:hover {
+            background: linear-gradient(135deg, #0d3a70, #1a5490);
+        }
+        .primary-action i,
+        .primary-action h3,
+        .primary-action p {
+            color: white;
+        }
+        .info-section {
+            background: #e7f3ff;
+            border-left: 4px solid #2c7cc1;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+        .info-section h4 {
+            color: #1a5490;
+            margin-bottom: 10px;
+        }
+        .info-section ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #ddd;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2c7cc1;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-university"></i>
+            <h1>Générateur Messages SWIFT</h1>
+            <p>CORIS Bank UEMOA - Système de test CBS Amplitude</p>
+            <span class="badge">✅ Version 3.0.0 - MT103 + MT910 + MT101</span>
+        </div>
+
+        <div class="content">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">8</div>
+                    <div class="stat-label">Filiales CORIS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">Banques émettrices</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Conforme SWIFT</div>
+                </div>
+            </div>
+
+            <h2 style="color: #1a5490; margin-bottom: 20px; text-align: center;">
+                <i class="fas fa-rocket"></i> Accès rapide
+            </h2>
+
+            <div class="menu-grid">
+                <a href="index.html" class="menu-item primary-action">
+                    <i class="fas fa-list-alt"></i>
+                    <h3>Sélection de Message</h3>
+                    <p>Choisir entre MT103 RTGS ou MT101</p>
+                </a>
+
+                <a href="mt103-generator.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h3>Générateur MT103 + MT910</h3>
+                    <p>Messages RTGS reçus de la BCEAO avec confirmations</p>
+                </a>
+
+                <a href="mt101-generator.html" class="menu-item">
+                    <i class="fas fa-paper-plane"></i>
+                    <h3>Générateur MT101</h3>
+                    <p>Demandes de virement clients (NOUVEAU)</p>
+                </a>
+
+                <a href="guide.html" class="menu-item">
+                    <i class="fas fa-book-open"></i>
+                    <h3>Guide MT103</h3>
+                    <p>Instructions complètes MT103 RTGS</p>
+                </a>
+
+                <a href="GUIDE_MT101.md" class="menu-item">
+                    <i class="fas fa-book"></i>
+                    <h3>Guide MT101</h3>
+                    <p>Instructions complètes MT101</p>
+                </a>
+
+                <a href="README_MT910.md" class="menu-item">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>Guide MT910</h3>
+                    <p>Confirmations BCEAO (NOUVEAU)</p>
+                </a>
+
+                <a href="test.html" class="menu-item">
+                    <i class="fas fa-vial"></i>
+                    <h3>Tests MT103</h3>
+                    <p>Tests automatisés MT103</p>
+                </a>
+
+                <a href="test-mt101.html" class="menu-item">
+                    <i class="fas fa-flask"></i>
+                    <h3>Tests MT101</h3>
+                    <p>Tests automatisés MT101 (NOUVEAU)</p>
+                </a>
+
+                <a href="README_v2.md" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <h3>Documentation v2.0</h3>
+                    <p>Documentation complète MT103 + MT101</p>
+                </a>
+            </div>
+
+            <div class="info-section">
+                <h4><i class="fas fa-info-circle"></i> Démarrage rapide en 3 étapes</h4>
+                <ul>
+                    <li><strong>Étape 1 :</strong> Cliquez sur "Générateur MT103 + MT910" ci-dessus</li>
+                    <li><strong>Étape 2 :</strong> Sélectionnez une filiale et importez le fichier exemple_iban.txt</li>
+                    <li><strong>Étape 3 :</strong> Cochez "Générer les MT910" puis cliquez sur "Générer les fichiers MT103" et téléchargez !</li>
+                </ul>
+            </div>
+
+            <div class="info-section" style="background: #d4edda; border-left-color: #27ae60;">
+                <h4><i class="fas fa-check-circle"></i> Nouveautés version 3.0.0</h4>
+                <ul>
+                    <li>✅ <strong>MT910 Confirmations BCEAO :</strong> Génération automatique des confirmations pour chaque MT103 RTGS</li>
+                    <li>✅ <strong>Lien MT910 ↔ MT103 :</strong> Liaison automatique par référence :21 et :108</li>
+                    <li>✅ <strong>Fichier unique MT910 :</strong> Toutes les confirmations regroupées dans un seul fichier</li>
+                    <li>✅ <strong>MT101 4 types :</strong> RTGS, Internes, Compensés, Étrangers/Devises</li>
+                </ul>
+            </div>
+
+            <div class="menu-grid" style="margin-top: 40px;">
+                <div class="menu-item" style="background: #fff3cd; border-color: #ffc107; cursor: default;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f39c12;"></i>
+                    <h3 style="color: #856404;">Usage test uniquement</h3>
+                    <p style="color: #856404;">Ne jamais utiliser en production</p>
+                </div>
+
+                <div class="menu-item" style="background: #d1ecf1; border-color: #17a2b8; cursor: default;">
+                    <i class="fas fa-database" style="color: #17a2b8;"></i>
+                    <h3 style="color: #0c5460;">40 IBAN fournis</h3>
+                    <p style="color: #0c5460;">8 pays UEMOA dans exemple_iban.txt</p>
+                </div>
+
+                <div class="menu-item" style="background: #f8d7da; border-color: #dc3545; cursor: default;">
+                    <i class="fas fa-shield-alt" style="color: #dc3545;"></i>
+                    <h3 style="color: #721c24;">100% Sécurisé</h3>
+                    <p style="color: #721c24;">Génération locale, aucune donnée envoyée</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2026 CORIS Bank UEMOA - Générateur Messages SWIFT</p>
+            <p style="margin-top: 10px;">
+                <strong>Version 3.0.0</strong> | 
+                MT103 RTGS + MT910 + MT101 | 
+                Conforme SWIFT FIN & BCEAO RTGS | 
+                Tests CBS Amplitude
+            </p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide d'utilisation - Générateur MT103 RTGS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1a5490;
+            border-bottom: 3px solid #2c7cc1;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c7cc1;
+            margin-top: 30px;
+        }
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-left: 4px solid #2c7cc1;
+            border-radius: 4px;
+        }
+        .step h3 {
+            margin-top: 0;
+            color: #1a5490;
+        }
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #f39c12;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .btn {
+            display: inline-block;
+            background: #2c7cc1;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #1a5490;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        ul {
+            margin-left: 20px;
+        }
+        li {
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Guide d'utilisation rapide</h1>
+        <p><strong>Générateur MT103 RTGS BCEAO</strong> - CORIS Bank UEMOA</p>
+
+        <div class="step">
+            <h3>Étape 1 : Sélection de la filiale</h3>
+            <p>Choisissez la filiale CORIS qui recevra les fichiers MT103 RTGS dans la liste déroulante.</p>
+            <p><strong>8 filiales disponibles :</strong> Burkina Faso, Bénin, Côte d'Ivoire, Guinée Bissau, Mali, Niger, Sénégal, Togo</p>
+        </div>
+
+        <div class="step">
+            <h3>Étape 2 : Configuration de base</h3>
+            <ul>
+                <li><strong>Date de valeur :</strong> Sélectionnez la date des transactions</li>
+                <li><strong>Nombre de fichiers :</strong> 1 à 100 fichiers</li>
+                <li><strong>Transactions par fichier :</strong> 1 à 1000 messages MT103 par fichier</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Étape 3 : Import des IBAN bénéficiaires</h3>
+            <p><strong>Option A - Import fichier :</strong></p>
+            <ul>
+                <li>Glissez-déposez votre fichier CSV/TXT</li>
+                <li>Ou cliquez sur "Parcourir"</li>
+                <li>Format : un IBAN par ligne</li>
+            </ul>
+            <p><strong>Option B - Saisie manuelle :</strong></p>
+            <ul>
+                <li>Sélectionnez "Saisie manuelle"</li>
+                <li>Entrez les IBAN, un par ligne</li>
+            </ul>
+        </div>
+
+        <div class="tip">
+            <strong>💡 Astuce :</strong> Un fichier exemple <code>exemple_iban.txt</code> est fourni avec 20 IBAN de test des 8 pays UEMOA.
+        </div>
+
+        <div class="step">
+            <h3>Étape 4 : Configuration des montants</h3>
+            <p>Définissez la plage de montants en XOF :</p>
+            <ul>
+                <li><strong>Montant minimum :</strong> Ex: 10 000 XOF</li>
+                <li><strong>Montant maximum :</strong> Ex: 5 000 000 XOF</li>
+            </ul>
+            <p><strong>Préréglages rapides :</strong></p>
+            <ul>
+                <li>Petits montants : 5 000 - 100 000 XOF</li>
+                <li>Montants moyens : 50 000 - 1 000 000 XOF</li>
+                <li>Gros montants : 500 000 - 10 000 000 XOF</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Étape 5 : Options avancées (optionnel)</h3>
+            <p>Cliquez sur "Options Avancées" pour personnaliser :</p>
+            <ul>
+                <li><strong>Client donneur d'ordre :</strong> Nom du client émetteur</li>
+                <li><strong>Information de paiement :</strong> Motif de paiement</li>
+                <li><strong>Préfixe du nom de fichier :</strong> Personnaliser le nom des fichiers</li>
+            </ul>
+            <p><em>Si laissé vide, ces informations sont générées aléatoirement de façon réaliste.</em></p>
+        </div>
+
+        <div class="step">
+            <h3>Étape 6 : Génération</h3>
+            <p>Cliquez sur le bouton <strong>"Générer les fichiers MT103"</strong></p>
+            <p>L'application va :</p>
+            <ul>
+                <li>✅ Valider toutes les données</li>
+                <li>✅ Générer les messages MT103 conformes SWIFT/BCEAO</li>
+                <li>✅ Afficher un aperçu des fichiers générés</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Étape 7 : Téléchargement</h3>
+            <p>Deux options de téléchargement :</p>
+            <ul>
+                <li><strong>Téléchargement individuel :</strong> Bouton sur chaque carte de fichier</li>
+                <li><strong>Téléchargement groupé :</strong> Bouton "Télécharger tous les fichiers"</li>
+            </ul>
+        </div>
+
+        <h2>📋 Format du fichier IBAN</h2>
+        <p>Exemple de fichier <code>iban.txt</code> ou <code>iban.csv</code> :</p>
+        <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto;">
+ML1810100200041802510100
+BF1234567890123456789012
+CI9876543210987654321098
+SN1111222233334444555566
+NE1234567890123456789012
+TG1234567890123456789012
+BJ1234567890123456789012
+GW1234567890123456789012
+        </pre>
+
+        <div class="tip">
+            <strong>💡 Bon à savoir :</strong>
+            <ul>
+                <li>Les IBAN sont automatiquement validés (format UEMOA)</li>
+                <li>Les lignes vides et caractères spéciaux sont ignorés</li>
+                <li>Si vous avez moins d'IBAN que de transactions, ils sont réutilisés en rotation</li>
+            </ul>
+        </div>
+
+        <h2>🎯 Cas d'usage typiques</h2>
+        
+        <div class="step">
+            <h3>Test de virements entrants</h3>
+            <p><strong>Configuration recommandée :</strong></p>
+            <ul>
+                <li>1 fichier avec 10-20 transactions</li>
+                <li>Montants moyens (50 000 - 1 000 000 XOF)</li>
+                <li>Liste d'IBAN de comptes de test</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Test de charge</h3>
+            <p><strong>Configuration recommandée :</strong></p>
+            <ul>
+                <li>10-50 fichiers avec 100-500 transactions chacun</li>
+                <li>Large plage de montants</li>
+                <li>Grande liste d'IBAN variés</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Formation équipe</h3>
+            <p><strong>Configuration recommandée :</strong></p>
+            <ul>
+                <li>3-5 fichiers avec 5-10 transactions</li>
+                <li>Montants simples et arrondis</li>
+                <li>Options avancées personnalisées</li>
+            </ul>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important :</strong>
+            <ul>
+                <li>Ces fichiers sont générés pour <strong>tests uniquement</strong></li>
+                <li>Ne jamais utiliser en environnement de production</li>
+                <li>Toujours valider dans votre CBS Amplitude de test d'abord</li>
+                <li>Les checksums et MAC sont générés aléatoirement</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Dépannage</h2>
+        
+        <div class="step">
+            <h3>Erreur : "Aucun IBAN valide trouvé"</h3>
+            <p><strong>Solution :</strong></p>
+            <ul>
+                <li>Vérifiez que les IBAN commencent par un code pays UEMOA (BF, BJ, CI, GW, ML, NE, SN, TG)</li>
+                <li>Assurez-vous qu'il y a un IBAN par ligne</li>
+                <li>Supprimez les en-têtes de colonnes si présents</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Erreur : "Le montant minimum doit être inférieur au maximum"</h3>
+            <p><strong>Solution :</strong></p>
+            <ul>
+                <li>Inversez les valeurs min/max</li>
+                <li>Utilisez les préréglages rapides</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h3>Les fichiers ne se téléchargent pas</h3>
+            <p><strong>Solution :</strong></p>
+            <ul>
+                <li>Vérifiez que votre navigateur autorise les téléchargements</li>
+                <li>Essayez le téléchargement individuel</li>
+                <li>Vérifiez l'espace disque disponible</li>
+            </ul>
+        </div>
+
+        <h2>📞 Support</h2>
+        <p>Pour toute question ou problème :</p>
+        <ul>
+            <li><strong>Équipe IT CORIS Bank UEMOA</strong></li>
+            <li><strong>CBS Amplitude Support Team</strong></li>
+        </ul>
+
+        <a href="index.html" class="btn">🚀 Lancer l'application</a>
+
+        <hr style="margin: 40px 0; border: none; border-top: 2px solid #e9ecef;">
+        
+        <p style="text-align: center; color: #7f8c8d; font-size: 14px;">
+            © 2026 CORIS Bank UEMOA - Générateur MT103 RTGS BCEAO v1.0<br>
+            Usage interne uniquement - Tests CBS Amplitude
+        </p>
+    </div>
+</body>
+</html>

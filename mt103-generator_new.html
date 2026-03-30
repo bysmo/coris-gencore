@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur MT103 RTGS BCEAO - CORIS Bank</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Ajout de JSZip pour la création d'archives ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <i class="fas fa-university"></i>
+                <h1>Générateur MT103 RTGS BCEAO</h1>
+                <p class="subtitle">CORIS Bank UEMOA - Système de test CBS Amplitude</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="form-container">
+                <form id="mt103Form">
+                    <!-- Section 1: Filiale destinataire -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-building"></i> Filiale Destinataire</h2>
+                        <div class="form-group">
+                            <label for="filiale">Sélectionnez la filiale qui reçoit le fichier</label>
+                            <select id="filiale" name="filiale" required>
+                                <option value="">-- Choisir une filiale --</option>
+                                <option value="CORIBFBF">Coris Burkina (CORIBFBF - BF148)</option>
+                                <option value="CORIBJBJ">Coris Bénin (CORIBJBJ - BJ212)</option>
+                                <option value="CORICIAB">Coris Côte d'Ivoire (CORICIAB - CI166)</option>
+                                <option value="CORIGWGW">Coris Guinée Bissau (CORIGWGW - GW243)</option>
+                                <option value="CORIMLBA">Coris Mali (CORIMLBA - ML181)</option>
+                                <option value="CORINENI">Coris Niger (CORINENI - NE210)</option>
+                                <option value="CORISNDA">Coris Sénégal (CORISNDA - SN213)</option>
+                                <option value="CORITGTG">Coris Togo (CORITGTG - TG182)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Configuration de la génération -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-cogs"></i> Configuration de la Génération</h2>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="valueDate">Date de valeur <span class="required">*</span></label>
+                                <input type="date" id="valueDate" name="valueDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="fileCount">Nombre de fichiers à générer <span
+                                        class="required">*</span></label>
+                                <input type="number" id="fileCount" name="fileCount" min="1" max="100" value="1"
+                                    required>
+                                <small>Maximum: 100 fichiers</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transactionsPerFile">Nombre de transactions par fichier</label>
+                            <input type="number" id="transactionsPerFile" name="transactionsPerFile" min="1" max="1000"
+                                value="10">
+                            <small>Nombre de MT103 par fichier généré (max 1000)</small>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Import IBAN -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-file-upload"></i> Import des IBAN Bénéficiaires</h2>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="radio" name="ibanMode" value="file" checked>
+                                Importer depuis un fichier (CSV/TXT)
+                            </label>
+                            <label>
+                                <input type="radio" name="ibanMode" value="manual">
+                                Saisie manuelle
+                            </label>
+                        </div>
+
+                        <div id="fileImportSection" class="import-section">
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Glissez-déposez votre fichier ici</p>
+                                <p class="file-format-info">Formats acceptés: CSV, TXT (un IBAN par ligne)</p>
+                                <input type="file" id="ibanFile" accept=".csv,.txt" hidden>
+                                <button type="button" class="btn-secondary"
+                                    onclick="document.getElementById('ibanFile').click()">
+                                    <i class="fas fa-folder-open"></i> Parcourir
+                                </button>
+                            </div>
+                            <div id="fileInfo" class="file-info" style="display: none;"></div>
+                        </div>
+
+                        <div id="manualImportSection" class="import-section" style="display: none;">
+                            <textarea id="ibanManual" rows="8"
+                                placeholder="Entrez les IBAN, un par ligne&#10;Exemple:&#10;ML1810100200041802510100&#10;BF1234567890123456789012&#10;CI9876543210987654321098"></textarea>
+                            <small>Un IBAN par ligne</small>
+                        </div>
+
+                        <div id="ibanPreview" class="iban-preview" style="display: none;">
+                            <h3>IBAN chargés: <span id="ibanCount">0</span></h3>
+                            <div id="ibanList" class="iban-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Configuration des montants -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-coins"></i> Configuration des Montants (XOF)</h2>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="minAmount">Montant minimum</label>
+                                <input type="number" id="minAmount" name="minAmount" value="10000" min="1000"
+                                    step="1000">
+                                <small>XOF</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxAmount">Montant maximum</label>
+                                <input type="number" id="maxAmount" name="maxAmount" value="5000000" min="10000"
+                                    step="10000">
+                                <small>XOF</small>
+                            </div>
+                        </div>
+
+                        <div class="amount-presets">
+                            <p>Préréglages rapides:</p>
+                            <button type="button" class="preset-btn" onclick="setAmountRange(5000, 100000)">Petits
+                                montants</button>
+                            <button type="button" class="preset-btn" onclick="setAmountRange(50000, 1000000)">Montants
+                                moyens</button>
+                            <button type="button" class="preset-btn" onclick="setAmountRange(500000, 10000000)">Gros
+                                montants</button>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Options avancées -->
+                    <div class="form-section collapsible">
+                        <h2 onclick="toggleSection(this)">
+                            <i class="fas fa-chevron-down"></i> Options Avancées (Optionnel)
+                        </h2>
+                        <div class="collapsible-content" style="display: none;">
+                            <div class="form-group">
+                                <label for="orderingCustomer">Client donneur d'ordre (défaut: généré
+                                    aléatoirement)</label>
+                                <textarea id="orderingCustomer" rows="3"
+                                    placeholder="Nom et adresse du client émetteur&#10;Exemple: BAMBOO ROCK DRILLING SARL"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="remittanceInfo">Information de paiement</label>
+                                <input type="text" id="remittanceInfo"
+                                    placeholder="Ex: VIREMENT PERMANENT, SALAIRE, etc.">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="filePrefix">Préfixe du nom de fichier</label>
+                                <input type="text" id="filePrefix" placeholder="Ex: TEST_MT103" value="MT103_RTGS">
+                            </div>
+
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="generateMT910" name="generateMT910" checked
+                                        style="width: auto;">
+                                    <span>Générer fichier MT910 de confirmation</span>
+                                </label>
+                                <small>Un fichier consolidé MT910 sera généré avec toutes les confirmations
+                                    BCEAO</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-magic"></i> Générer les fichiers MT103
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Réinitialiser
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Zone de résultats -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <h2><i class="fas fa-check-circle"></i> Fichiers générés avec succès!</h2>
+
+                <!-- BOUTON DE TÉLÉCHARGEMENT GROUPÉ AJOUTÉ ICI -->
+                <div class="bulk-download-container" style="margin: 20px 0; text-align: center;">
+                    <button class="btn-primary" onclick="downloadAllFiles()"
+                        style="font-size: 16px; padding: 12px 24px;">
+                        <i class="fas fa-file-archive"></i> Tout télécharger (ZIP)
+                    </button>
+                    <p style="margin-top: 8px; font-size: 13px; color: #666;">
+                        Télécharge tous les fichiers générés dans une archive ZIP
+                    </p>
+                </div>
+
+                <div id="generatedFiles" class="generated-files"></div>
+                <div class="result-actions">
+                    <button class="btn-primary" onclick="downloadAllFiles()">
+                        <i class="fas fa-download"></i> Télécharger tous les fichiers (ZIP)
+                    </button>
+                    <button class="btn-secondary" onclick="newGeneration()">
+                        <i class="fas fa-plus"></i> Nouvelle génération
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 CORIS Bank UEMOA - Générateur MT103 RTGS pour tests CBS Amplitude</p>
+            <p style="margin-top: 10px; font-size: 13px;">
+                <a href="guide.html" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">📖 Guide
+                    d'utilisation</a> |
+                <a href="test.html" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">🧪 Tests</a> |
+                <a href="README.md" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">📄 Documentation</a>
+            </p>
+        </footer>
+    </div>
+
+    <style>
+        /* Style pour le bouton de téléchargement groupé */
+        .bulk-download-container {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%);
+            border: 2px dashed #2c7cc1;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+
+    <script src="js/config.js"></script>
+    <script src="js/mt103-generator.js"></script>
+    <script src="js/mt910-generator.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Script pour la gestion du téléchargement ZIP -->
+    <script>
+        // Variable globale pour stocker les fichiers générés
+        let generatedMT103Files = [];
+
+        // Fonction pour télécharger tous les fichiers en ZIP
+        async function downloadAllFiles() {
+            if (generatedMT103Files.length === 0) {
+                alert('Aucun fichier à télécharger. Veuillez d\'abord générer des fichiers.');
+                return;
+            }
+
+            try {
+                const zip = new JSZip();
+                const folderName = `MT103_RTGS_${new Date().toISOString().split('T')[0]}`;
+                const folder = zip.folder(folderName);
+
+                // Ajouter chaque fichier au ZIP
+                generatedMT103Files.forEach(file => {
+                    folder.file(file.name, file.content);
+                });
+
+                // Générer le ZIP
+                const zipContent = await zip.generateAsync({
+                    type: 'blob',
+                    compression: 'DEFLATE',
+                    compressionOptions: { level: 6 }
+                });
+
+                // Créer le lien de téléchargement
+                const url = URL.createObjectURL(zipContent);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${folderName}.zip`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                // Notification de succès
+                showNotification('Archive ZIP téléchargée avec succès!', 'success');
+            } catch (error) {
+                console.error('Erreur lors de la création du ZIP:', error);
+                alert('Erreur lors de la création de l\'archive ZIP. Veuillez réessayer.');
+            }
+        }
+
+        // Fonction pour afficher une notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : '#2c7cc1'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 10000;
+                font-family: inherit;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i> ${message}`;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Animation CSS pour les notifications
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

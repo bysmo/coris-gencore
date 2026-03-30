@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur MT103 CEMAC - CORIS Bank</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="iframe-page" style="background: transparent;">
+
+    <main class="main-content">
+        <header class="content-header">
+            <h1>Générateur MT103 CEMAC</h1>
+            <p>CORIS Bank — Zone CEMAC / BEAC · Devise : XAF (Franc CFA CEMAC)</p>
+        </header>
+
+        <div class="form-container">
+            <form id="mt103CemacForm">
+
+                <!-- Section 1 : Filiale réceptrice -->
+                <div class="form-section">
+                    <h2><i class="fas fa-building"></i> Filiale Réceptrice (CEMAC)</h2>
+                    <div class="form-group">
+                        <label for="filiale">Sélectionnez la filiale qui reçoit les MT103</label>
+                        <select id="filiale" name="filiale" required>
+                            <option value="">-- Choisir une filiale CEMAC --</option>
+                            <option value="CORICMXA">Coris Cameroun (CORICMXA)</option>
+                            <option value="CORICOXA">Coris Congo (CORICOXA)</option>
+                            <option value="CORIGAXA">Coris Gabon (CORIGAXA)</option>
+                            <option value="CORITDXA">Coris Tchad (CORITDXA)</option>
+                            <option value="CORICFXA">Coris Centrafrique (CORICFXA)</option>
+                            <option value="CORICMGQ">Coris Guinée Équatoriale (CORICMGQ)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Section 2 : Configuration -->
+                <div class="form-section">
+                    <h2><i class="fas fa-cogs"></i> Configuration de la Génération</h2>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valueDate">Date de valeur <span class="required">*</span></label>
+                            <input type="date" id="valueDate" name="valueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fileCount">Nombre de fichiers <span class="required">*</span></label>
+                            <input type="number" id="fileCount" name="fileCount" min="1" max="100" value="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="transactionsPerFile">Nombre de transactions par fichier</label>
+                        <input type="number" id="transactionsPerFile" name="transactionsPerFile" min="1" max="500"
+                            value="10">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ibans">IBANs bénéficiaires (un par ligne) <span class="required">*</span></label>
+                        <textarea id="ibans" name="ibans" rows="5"
+                            placeholder="CM21 10005 00003 01234567890 25&#10;CG20 10001 00001 09876543210 12&#10;..."
+                            required></textarea>
+                        <small>Format IBAN CEMAC. Les IBANs seront utilisés en rotation.</small>
+                    </div>
+                </div>
+
+                <!-- Section 3 : Montants -->
+                <div class="form-section">
+                    <h2><i class="fas fa-coins"></i> Montants (XAF)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="minAmount">Montant minimum</label>
+                            <input type="number" id="minAmount" name="minAmount" value="100000" min="1">
+                            <small>XAF</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="maxAmount">Montant maximum</label>
+                            <input type="number" id="maxAmount" name="maxAmount" value="50000000" min="1">
+                            <small>XAF</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 4 : Options avancées -->
+                <div class="form-section collapsible">
+                    <h2 onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-down"></i> Options Avancées
+                    </h2>
+                    <div class="collapsible-content" style="display:none;">
+                        <div class="form-group">
+                            <label for="orderingCustomer">Donneur d'ordre</label>
+                            <input type="text" id="orderingCustomer" placeholder="Ex: SOCIETE MINIERE DU CAMEROUN">
+                        </div>
+                        <div class="form-group">
+                            <label for="remittanceInfo">Motif de paiement (70)</label>
+                            <input type="text" id="remittanceInfo" placeholder="Ex: REGLEMENT FACTURE 2026-001">
+                        </div>
+                        <div class="form-group">
+                            <label for="filePrefix">Préfixe du nom de fichier</label>
+                            <input type="text" id="filePrefix" value="MT103_CEMAC">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-magic"></i> Générer les MT103 CEMAC
+                    </button>
+                    <button type="button" class="btn-secondary"
+                        onclick="document.getElementById('mt103CemacForm').reset(); initDate();">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Zone de résultats -->
+        <div id="resultSection" class="result-section" style="display:none;">
+            <h2><i class="fas fa-check-circle"></i> Fichiers générés avec succès !</h2>
+            <div id="generatedFiles" class="generated-files"></div>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="downloadAllFiles()">
+                    <i class="fas fa-download"></i> Tout télécharger
+                </button>
+                <button class="btn-secondary" onclick="newGeneration()">
+                    <i class="fas fa-plus"></i> Nouvelle génération
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/mt103-generator.js"></script>
+    <script>
+        let generatedFilesData = [];
+
+        // Banques CEMAC pour virements
+        const CEMAC_SENDING_BANKS = [
+            { bic: 'ECOCCMCX', name: 'ECOBANK CAMEROUN', rtgsCode: 'CM00030901', country: 'CM' },
+            { bic: 'ECOCGAXA', name: 'ECOBANK GABON', rtgsCode: 'GA00030902', country: 'GA' },
+            { bic: 'ECOCCOXA', name: 'ECOBANK CONGO', rtgsCode: 'CG00030903', country: 'CG' },
+            { bic: 'SGCMCMCX', name: 'SOCIETE GENERALE CAMEROUN', rtgsCode: 'CM00030248', country: 'CM' },
+            { bic: 'SGCOGAXXX', name: 'SOCIETE GENERALE GABON', rtgsCode: 'GA00030281', country: 'GA' },
+            { bic: 'BGFICMCX', name: 'BGFI BANK CAMEROUN', rtgsCode: 'CM00030350', country: 'CM' },
+            { bic: 'BGFIGAXXX', name: 'BGFI BANK GABON', rtgsCode: 'GA00030351', country: 'GA' }
+        ];
+
+        function initDate() {
+            document.getElementById('valueDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initDate();
+            document.getElementById('mt103CemacForm').addEventListener('submit', handleSubmit);
+        });
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const filialeKey = document.getElementById('filiale').value;
+            if (!filialeKey) { alert('Veuillez sélectionner une filiale CEMAC.'); return; }
+
+            const ibanRaw = document.getElementById('ibans').value.trim();
+            if (!ibanRaw) { alert('Veuillez saisir au moins un IBAN bénéficiaire.'); return; }
+            const ibans = ibanRaw.split('\n').map(s => s.replace(/\s/g, '')).filter(s => s.length > 5);
+            if (!ibans.length) { alert('Aucun IBAN valide détecté.'); return; }
+
+            const config = {
+                filiale: filialeKey,
+                valueDate: new Date(document.getElementById('valueDate').value),
+                fileCount: parseInt(document.getElementById('fileCount').value),
+                transactionsPerFile: parseInt(document.getElementById('transactionsPerFile').value),
+                minAmount: parseFloat(document.getElementById('minAmount').value),
+                maxAmount: parseFloat(document.getElementById('maxAmount').value),
+                orderingCustomer: document.getElementById('orderingCustomer').value,
+                remittanceInfo: document.getElementById('remittanceInfo').value,
+                filePrefix: document.getElementById('filePrefix').value || 'MT103_CEMAC'
+            };
+
+            // Override SENDING_BANKS with CEMAC banks temporarily
+            const origSendingBanks = window.SENDING_BANKS;
+            window.SENDING_BANKS = CEMAC_SENDING_BANKS;
+
+            try {
+                const generator = new MT103Generator(config);
+                const files = generator.generateAllFiles(ibans, config);
+                generatedFilesData = files;
+                displayResults(files);
+                document.querySelector('.form-container').style.display = 'none';
+                document.getElementById('resultSection').style.display = 'block';
+            } catch (err) {
+                alert('Erreur génération : ' + err.message);
+                console.error(err);
+            } finally {
+                window.SENDING_BANKS = origSendingBanks;
+            }
+        }
+
+        function displayResults(files) {
+            const container = document.getElementById('generatedFiles');
+            let html = '<div class="files-grid">';
+            files.forEach((file, i) => {
+                html += `
+                    <div class="file-card">
+                        <div class="file-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="file-info">
+                            <h3>${file.name}</h3>
+                            <p><strong>Filiale :</strong> ${file.filiale}</p>
+                            <p><strong>Transactions :</strong> ${file.messagesCount} MT103</p>
+                            <p><strong>Taille :</strong> ${(file.content.length / 1024).toFixed(2)} KB</p>
+                        </div>
+                        <button class="btn-download" onclick="DownloadHelper.downloadSingle('${file.name}', generatedFilesData[${i}].content)">
+                            <i class="fas fa-download"></i> Télécharger
+                        </button>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function downloadAllFiles() {
+            DownloadHelper.zipAndDownload(generatedFilesData, `MT103_CEMAC_${Date.now()}.zip`);
+        }
+
+        function newGeneration() {
+            document.querySelector('.form-container').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>

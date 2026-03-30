@@ -1,0 +1,113 @@
+# Exemple de fichier MT103 RTGS BCEAO généré
+
+Ce fichier contient des exemples de messages MT103 RTGS conformes aux spécifications BCEAO.
+
+## Message 1 : Virement de 350 000 XOF
+
+{1:F21CORIMLBAAXXX4967194233}{4:{177:2601270938}{451:0}}{1:F01CORIMLBAAXXX4967194233}{2:O1030938260127BCAOSNDPAXXX31220255572601270938N}{3:{113:0030}{108:O01SIP1183205336}{121:c1464b96-16b8-4e9f-8b08-3da831f01005}}{4:
+:20:O01SIP1183205336
+:23B:CRED
+:23E:SDVA
+:26T:001
+:32A:260127XOF350000,
+:50K:/7234561890234567
+//TRAORE SEYDOU
+:53A:/D/D00030901
+ECOCMLBA
+:57A:/C/D00030181
+CORIMLBA
+:59:/ML1810100200041802510100
+//TRAORE SEYDOU
+:70:VIREMENT PERMANENT
+:71A:SHA
+:72:/CODTYPTR/001
+-}{5:{MAC:00000000}{CHK:A1B2C3D4E5F6}}{S:{SAC:}{COP:S}}
+
+## Message 2 : Transfert commercial de 2 500 000 XOF
+
+{1:F21CORIBFBFAXXX4967194234}{4:{177:2601271045}{451:0}}{1:F01CORIBFBFAXXX4967194234}{2:O1031045260127BCAOSNDPAXXX31220255582601271045N}{3:{113:0030}{108:O01SIP1183205337}{121:d8f4c9a7-22b9-4f1a-9c19-4eb742g02106}}{4:
+:20:O01SIP1183205337
+:23B:CRED
+:23E:SDVA
+:26T:001
+:32A:260127XOF2500000,
+:50K:/3456789012345678
+//BAMBOO ROCK DRILLING SARL
+//01 BP 2914 OUAGADOUGOU 01
+:53A:/D/C00030831
+ECOCBFBF
+:57A:/C/C00030148
+CORIBFBF
+:59:/BF1234567890123456789012
+//BAMBOO ROCK DRILLING SARL
+:70:REGLEMENT FOURNISSEUR
+:71A:SHA
+:72:/CODTYPTR/001
+-}{5:{MAC:00000000}{CHK:F6E5D4C3B2A1}}{S:{SAC:}{COP:S}}
+
+## Message 3 : Paiement salaire de 125 000 XOF
+
+{1:F21CORISNDAAXXX4967194235}{4:{177:2601271130}{451:0}}{1:F01CORISNDAAXXX4967194235}{2:O1031130260127BCAOSNDPAXXX31220255592601271130N}{3:{113:0030}{108:O01SIP1183205338}{121:e9g5d0b8-33c0-5g2b-0d20-5fc853h03207}}{4:
+:20:O01SIP1183205338
+:23B:CRED
+:23E:SDVA
+:26T:001
+:32A:260127XOF125000,
+:50K:/8901234567890123
+//DIOP AWA
+:53A:/D/K00030971
+ECOCSNDA
+:57A:/C/K00031971
+CORISNDA
+:59:/SN1111222233334444555566
+//DIOP AWA
+:70:SALAIRE
+:71A:SHA
+:72:/CODTYPTR/001
+-}{5:{MAC:00000000}{CHK:9A8B7C6D5E4F}}{S:{SAC:}{COP:S}}
+
+---
+
+## Légende des champs principaux
+
+**Block 1 (Basic Header):**
+- F21/F01 : Type de message (Financial)
+- CORIMLBAAXXX : BIC de la banque (8 ou 11 caractères)
+- Numéro de séquence : Identifiant unique du message
+
+**Block 2 (Application Header):**
+- O103 : Output MT103
+- Date/heure d'envoi
+- BCAOSNDPAXXX : BIC de la BCEAO
+- Priorité et indicateurs
+
+**Block 3 (User Header):**
+- {113:0030} : Code service bancaire
+- {108:...} : Référence de transaction
+- {121:...} : UUID unique de transaction
+
+**Block 4 (Text Block - Corps du MT103):**
+- :20: Référence de transaction
+- :23B: CRED (Credit transfer)
+- :23E: SDVA (Same day value)
+- :26T: Type de transaction
+- :32A: Date valeur + devise (XOF) + montant
+- :50K: Client donneur d'ordre (compte + nom)
+- :53A: Banque émettrice (code RTGS + BIC)
+- :57A: Banque réceptrice (code RTGS + BIC)
+- :59: Bénéficiaire (IBAN + nom)
+- :70: Motif de paiement
+- :71A: SHA (Frais partagés)
+- :72: Informations complémentaires
+
+**Block 5 (Trailer):**
+- MAC : Message Authentication Code
+- CHK : Checksum
+
+**Block S (System):**
+- SAC : System Application Code
+- COP : Copy indicator (S = Single)
+
+---
+
+**Note:** Ces exemples sont générés pour tests uniquement.

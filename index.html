@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur Messages SWIFT - CORIS Bank International</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="img/coris-logo.jpg" alt="Coris Bank Logo" class="sidebar-logo">
+                <span class="sidebar-title">SWIFT Generator</span>
+            </div>
+            <nav class="sidebar-menu">
+                <div class="menu-section-title">Navigation</div>
+                <a href="dashboard.html" class="menu-item active" target="content-frame" data-page="dashboard.html">
+                    <i class="fas fa-th-large"></i>
+                    <span>Tableau de bord</span>
+                </a>
+
+                <!-- Zone UEMOA -->
+                <div class="menu-section-title">
+                    <i class="fas fa-globe-africa" style="font-size:10px;"></i> Zone UEMOA
+                </div>
+                <a href="mt103-generator.html" class="menu-item" target="content-frame"
+                    data-page="mt103-generator.html">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>MT103 RTGS UEMOA</span>
+                    <span class="menu-badge">BCEAO</span>
+                </a>
+                <a href="mt101-generator.html" class="menu-item" target="content-frame"
+                    data-page="mt101-generator.html">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>MT101 Corporate</span>
+                    <span class="menu-badge">MULTI</span>
+                </a>
+
+                <!-- Zone CEMAC -->
+                <div class="menu-section-title">
+                    <i class="fas fa-globe-africa" style="font-size:10px;"></i> Zone CEMAC
+                </div>
+                <a href="mt103-cemac-generator.html" class="menu-item" target="content-frame"
+                    data-page="mt103-cemac-generator.html">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>MT103 RTGS CEMAC</span>
+                    <span class="menu-badge">BEAC</span>
+                </a>
+
+                <!-- Autres flux -->
+                <div class="menu-section-title">Autres Flux</div>
+                <a href="virement-masse-generator.html" class="menu-item" target="content-frame"
+                    data-page="virement-masse-generator.html">
+                    <i class="fas fa-users"></i>
+                    <span>Virement de Masse</span>
+                    <span class="menu-badge" style="background:var(--primary-color);">NEW</span>
+                </a>
+                <a href="mt103-etranger-generator.html" class="menu-item" target="content-frame"
+                    data-page="mt103-etranger-generator.html">
+                    <i class="fas fa-globe"></i>
+                    <span>MT103 International</span>
+                </a>
+                <a href="prelevements-generator.html" class="menu-item" target="content-frame"
+                    data-page="prelevements-generator.html">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Prélèvements</span>
+                    <span class="menu-badge soon">Bientôt</span>
+                </a>
+
+                <!-- Outils -->
+                <div class="menu-section-title">Outils</div>
+                <a href="guide.html" class="menu-item" target="content-frame" data-page="guide.html">
+                    <i class="fas fa-book"></i>
+                    <span>Guide d'utilisation</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <p>&copy; 2026 CORIS Bank International</p>
+                <p>Version 3.0.0</p>
+            </div>
+        </aside>
+
+        <!-- Main Content (Iframe Shell) -->
+        <main class="main-content">
+            <iframe name="content-frame" id="contentFrame" src="dashboard.html" class="content-frame"></iframe>
+        </main>
+    </div>
+
+    <script>
+        // Gestion de l'état actif du menu (basé sur href de l'iframe)
+        const menuItems = document.querySelectorAll('.menu-item');
+        const frame = document.getElementById('contentFrame');
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', function () {
+                menuItems.forEach(mi => mi.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Suivi de navigation dans l'iframe
+        frame.addEventListener('load', function () {
+            try {
+                const src = frame.contentWindow.location.href;
+                const page = src.split('/').pop();
+                menuItems.forEach(mi => {
+                    mi.classList.remove('active');
+                    if (mi.getAttribute('data-page') === page) {
+                        mi.classList.add('active');
+                    }
+                });
+            } catch (e) { /* cross-origin */ }
+        });
+    </script>
+</body>
+
+</html>

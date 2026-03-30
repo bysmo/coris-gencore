@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Fichiers Virements Multiples - Amplitude </title>
+    <link href="tailwind.min.css" rel="stylesheet">
+    <link href="all.min.css" rel="stylesheet">
+    <script src="xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <header class="mb-10 text-center">
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 rounded-lg shadow-lg p-6 mb-6">
+                <h1 class="text-3xl font-bold text-white">Générateur de Fichiers Virements Multiples</h1>
+                <p class="text-blue-100 mt-2">Conversion des fichiers Excel vers le format texte Amplitude</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <!-- Left Column - Instructions -->
+                <div class="lg:col-span-2 bg-blue-50 rounded-lg p-5">
+                    <h2 class="text-xl font-semibold text-blue-800 mb-4"><i class="fas fa-info-circle mr-2"></i>Instructions</h2>
+                    <div class="space-y-4 text-gray-700">
+                        <div>
+                            <h3 class="font-medium text-blue-700">Structure du fichier Excel</h3>
+                            <ul class="list-disc pl-5 mt-2 space-y-1">
+                                <li>Ligne 1: En-têtes du donneur d'ordre</li>
+                                <li>Ligne 2: Données du donneur d'ordre</li>
+                                <li>Ligne 3: En-têtes des bénéficiaires</li>
+                                <li>Lignes 4+: Données des bénéficiaires</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-blue-700">Format généré</h3>
+                            <p class="mt-2">Le fichier texte généré respectera les spécifications Amplitude avec:</p>
+                            <ul class="list-disc pl-5 mt-1 space-y-1">
+                                <li>Un enregistrement "Entête Donneur d'ordre"</li>
+                                <li>Des enregistrements "Détail virement bénéficiaire"</li>
+                                <li>Chaque ligne de 255 caractères</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-blue-700">Procédure</h3>
+                            <ol class="list-decimal pl-5 mt-2 space-y-1">
+                                <li>Téléchargez votre fichier Excel</li>
+                                <li>Vérifiez les données extraites</li>
+                                <li>Saisissez un préfixe (optionnel)</li>
+                                <li>Générez et téléchargez le fichier texte</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - File Upload and Processing -->
+                <div class="lg:col-span-3 space-y-6">
+                    <!-- File Upload Section -->
+                    <div class="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
+                        <h3 class="text-xl font-semibold text-blue-800 mb-4"><i class="fas fa-file-upload mr-2"></i>Importer un fichier Excel</h3>
+                        <div class="flex items-center justify-center">
+                            <label class="w-full flex flex-col items-center px-4 py-6 bg-white text-blue-600 rounded-lg tracking-wide uppercase border border-blue-400 cursor-pointer hover:bg-blue-100 hover:text-blue-800 transition-all">
+                                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                                <span class="mt-2 text-base leading-normal">Sélectionner un fichier</span>
+                                <input type='file' id="fileUpload" class="hidden" accept=".xls,.xlsx" />
+                            </label>
+                        </div>
+                        <p id="fileName" class="mt-3 text-center text-sm text-gray-600">Aucun fichier sélectionné</p>
+                    </div>
+
+                    <!-- Prefix Entry -->
+                    <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-700 mb-3">Préfixe du fichier (optionnel) (LIB4/T106)</h3>
+                        <div class="flex items-center">
+                            <input type="text" id="filePrefix" maxlength="40" placeholder="Entrez un préfixe (max 40 caractères)" class="flex-grow px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <div class="ml-2 text-gray-500">
+                                <small id="prefixLength">0/40</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Process Button -->
+                    <div class="flex justify-center">
+                        <button id="processButton" disabled class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                            <i class="fas fa-cog mr-2"></i>Générer le fichier texte
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Section -->
+            <div id="previewSection" class="mt-8 border-t pt-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Aperçu des données</h2>
+
+                <!-- Tabs -->
+                <div class="border-b border-gray-200">
+                    <nav class="flex -mb-px space-x-8">
+                        <button id="tabDonneur" class="text-blue-600 border-blue-500 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                            Donneur d'ordre
+                        </button>
+                        <button id="tabBeneficiaires" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm">
+                            Bénéficiaires
+                        </button>
+                        <button id="tabResultat" class="text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 border-transparent font-medium text-sm">
+                            Fichier généré
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="py-4">
+                    <!-- Donneur d'ordre -->
+                    <div id="contentDonneur" class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h3 class="font-semibold text-blue-800 mb-2">Informations du donneur d'ordre</h3>
+                            <div id="donneurData" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Data will be inserted here dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bénéficiaires -->
+                    <div id="contentBeneficiaires" class="hidden">
+                        <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                            <h3 class="font-semibold text-blue-800 mb-2">Récapitulatif</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-white p-3 rounded shadow">
+                                    <p class="text-sm text-gray-600">Nombre de bénéficiaires</p>
+                                    <p id="benefCount" class="text-xl font-bold text-blue-600">0</p>
+                                </div>
+                                <div class="bg-white p-3 rounded shadow">
+                                    <p class="text-sm text-gray-600">Montant total</p>
+                                    <p id="totalAmount" class="text-xl font-bold text-blue-600">0.00</p>
+                                </div>
+                                <div class="bg-white p-3 rounded shadow">
+                                    <p class="text-sm text-gray-600">Devise</p>
+                                    <p id="currency" class="text-xl font-bold text-blue-600">DEV</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-200">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Num.</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom bénéf.</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code Etab.</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code Guichet</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compte+RIB</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                                        <th class="py-2 px-4 border-b text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Motif</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="beneficiairesTable">
+                                    <!-- Data will be inserted here dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Résultat -->
+                    <div id="contentResultat" class="hidden">
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-white">Aperçu du fichier généré</h3>
+                                <button id="downloadBtn" class="bg-blue-600 text-white px-4 py-1 rounded text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <i class="fas fa-download mr-1"></i> Télécharger
+                                </button>
+                            </div>
+                            <div class="bg-gray-900 text-green-400 p-4 rounded font-mono text-sm overflow-x-auto">
+                                <pre id="filePreview" class="whitespace-pre-wrap"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm">
+            <p>Coris Holding © 2025 - Générateur de Fichiers Virements Multiples Amplitude</p>
+        </footer>
+
+        <!-- Alert Modal -->
+        <div id="alertModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+            <div class="bg-white rounded-lg p-6 max-w-md">
+                <div class="flex items-center mb-4">
+                    <i id="alertIcon" class="fas fa-exclamation-circle text-red-500 text-2xl mr-3"></i>
+                    <h3 id="alertTitle" class="text-lg font-semibold">Erreur</h3>
+                </div>
+                <p id="alertMessage" class="text-gray-700 mb-4"></p>
+                <div class="flex justify-end">
+                    <button id="alertClose" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fileUpload = document.getElementById('fileUpload');
+        const fileName = document.getElementById('fileName');
+        const filePrefix = document.getElementById('filePrefix');
+        const prefixLength = document.getElementById('prefixLength');
+        const processButton = document.getElementById('processButton');
+        const previewSection = document.getElementById('previewSection');
+        const donneurData = document.getElementById('donneurData');
+        const beneficiairesTable = document.getElementById('beneficiairesTable');
+        const benefCount = document.getElementById('benefCount');
+        const totalAmount = document.getElementById('totalAmount');
+        const currency = document.getElementById('currency');
+        const filePreview = document.getElementById('filePreview');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const alertModal = document.getElementById('alertModal');
+        const alertIcon = document.getElementById('alertIcon');
+        const alertTitle = document.getElementById('alertTitle');
+        const alertMessage = document.getElementById('alertMessage');
+        const alertClose = document.getElementById('alertClose');
+
+        // Tab navigation
+        const tabDonneur = document.getElementById('tabDonneur');
+        const tabBeneficiaires = document.getElementById('tabBeneficiaires');
+        const tabResultat = document.getElementById('tabResultat');
+        const contentDonneur = document.getElementById('contentDonneur');
+        const contentBeneficiaires = document.getElementById('contentBeneficiaires');
+        const contentResultat = document.getElementById('contentResultat');
+        
+        let montantTotalDebit =0;
+        let montantTotalCredit =0;
+
+        // Store parsed data
+        let excelData = {
+            headers: {
+                donneur: [],
+                beneficiaires: []
+            },
+            donneur: {},
+            beneficiaires: [],
+            generatedFile: ""
+        };
+
+        // Event listeners
+        fileUpload.addEventListener('change', handleFileUpload);
+        filePrefix.addEventListener('input', updatePrefixCounter);
+        processButton.addEventListener('click', processFile);
+        downloadBtn.addEventListener('click', downloadFile);
+        alertClose.addEventListener('click', () => alertModal.classList.add('hidden'));
+
+        // Tab navigation events
+        tabDonneur.addEventListener('click', () => switchTab('donneur'));
+        tabBeneficiaires.addEventListener('click', () => switchTab('beneficiaires'));
+        tabResultat.addEventListener('click', () => switchTab('resultat'));
+
+        // Functions
+        function switchTab(tab) {
+            // Reset all tabs
+            [tabDonneur, tabBeneficiaires, tabResultat].forEach(t => {
+                t.classList.remove('text-blue-600', 'border-blue-500');
+                t.classList.add('text-gray-500', 'border-transparent');
+            });
+            
+            [contentDonneur, contentBeneficiaires, contentResultat].forEach(c => {
+                c.classList.add('hidden');
+            });
+            
+            // Set active tab
+            switch (tab) {
+                case 'donneur':
+                    tabDonneur.classList.remove('text-gray-500', 'border-transparent');
+                    tabDonneur.classList.add('text-blue-600', 'border-blue-500');
+                    contentDonneur.classList.remove('hidden');
+                    break;
+                case 'beneficiaires':
+                    tabBeneficiaires.classList.remove('text-gray-500', 'border-transparent');
+                    tabBeneficiaires.classList.add('text-blue-600', 'border-blue-500');
+                    contentBeneficiaires.classList.remove('hidden');
+                    break;
+                case 'resultat':
+                    tabResultat.classList.remove('text-gray-500', 'border-transparent');
+                    tabResultat.classList.add('text-blue-600', 'border-blue-500');
+                    contentResultat.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function updatePrefixCounter() {
+            const length = filePrefix.value.length;
+            prefixLength.textContent = `${length}/40`;
+        }
+
+        function showAlert(type, title, message) {
+            alertTitle.textContent = title;
+            alertMessage.textContent = message;
+            
+            if (type === 'error') {
+                alertIcon.className = 'fas fa-exclamation-circle text-red-500 text-2xl mr-3';
+            } else if (type === 'success') {
+                alertIcon.className = 'fas fa-check-circle text-green-500 text-2xl mr-3';
+            } else if (type === 'warning') {
+                alertIcon.className = 'fas fa-exclamation-triangle text-yellow-500 text-2xl mr-3';
+            }
+            
+            alertModal.classList.remove('hidden');
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                fileName.textContent = "Aucun fichier sélectionné";
+                processButton.disabled = true;
+                return;
+            }
+
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+                showAlert('error', 'Format non valide', 'Veuillez sélectionner un fichier Excel (.xlsx ou .xls)');
+                fileUpload.value = '';
+                fileName.textContent = "Aucun fichier sélectionné";
+                processButton.disabled = true;
+                return;
+            }
+
+            fileName.textContent = file.name;
+            processButton.disabled = false;
+
+            // Parse Excel file
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+                    
+                    // Check if the file has enough rows
+                    if (jsonData.length < 4) {
+                        showAlert('error', 'Données insuffisantes', 'Le fichier doit contenir au moins 4 lignes');
+                        return;
+                    }
+                    
+                    // Extract headers and data
+                    excelData.headers.donneur = jsonData[0];
+                    excelData.headers.beneficiaires = jsonData[2];
+
+                    
+                    
+                    // Extract donneur data (row 2)
+                    excelData.donneur = {};
+                    for (let i = 0; i < jsonData[0].length; i++) {
+                        if (jsonData[0][i]) {
+                            // Extract donneur data
+                            //alert("Colonne beneficiaire :" + jsonData[0][i]);
+                            //recuperer le montant total débit
+                            if(i==9)  
+                            {//-- colonne du montant
+                                if(!isNaN(Number(jsonData[1][i].toString().trim()))) 
+                                    montantTotalDebit = parseInt(jsonData[1][i].toString().trim());
+                                else 
+                                    showAlert("danger","Montant du donneur d'ordre incorrect","Le montant total indiqué dans le fichier n'est pas correct!");
+                            }
+                            
+                            excelData.donneur[jsonData[0][i].toString().trim()] = jsonData[1][i].toString().trim();
+                        }
+                    }
+                    
+                    // Extract beneficiaires data (rows 4+)
+                    excelData.beneficiaires = [];
+                    for (let i = 3; i < jsonData.length; i++) {
+                        // Skip empty rows
+                        if (jsonData[i].some(cell => cell)) {  // Skip empty rows
+                            if(jsonData[i][0].length == 0) continue; /// sauter les lignes qui n'ont pas de numeros, considerees comme vide
+                            // Extract beneficiaire data
+                            const benefData = {};
+                            for (let j = 0; j < jsonData[2].length; j++) {
+                                // Extract beneficiaire data
+                                if (jsonData[2][j]) {
+
+                                     //recuperer le montant total débit
+                                        if(j==6)  
+                                        {//-- colonne du montant
+                                            if(!isNaN(Number(jsonData[i][j].toString().trim()))) 
+                                                montantTotalCredit += parseInt(jsonData[i][j].toString().trim());
+                                            else 
+                                                showAlert("error","Le montant du bénéfiaire numero "+(i-3)+" est incorrect","Le montant  indiqué dans le fichier n'est pas correct!");
+                                        }
+
+                                    //alert("Colonne donneur d'ordre :" + jsonData[2][j]);
+                                    benefData[jsonData[2][j].toString().trim()] = jsonData[i][j].toString().trim();
+                                }
+                            }
+                            excelData.beneficiaires.push(benefData);
+                        }
+                    }
+                    //alert("beneficiaires "+ excelData.beneficiaires);
+
+                    if(montantTotalCredit!=montantTotalDebit)
+                        showAlert("error","Total Débit != Total Crédit","Le total des crédits est différent du montant à débiter");
+                    
+                    // Display extracted data
+                    displayDonneurData();
+                    displayBeneficiairesData();
+                    
+                    // Show preview section
+                    previewSection.classList.remove('hidden');
+                    
+                } catch (error) {
+                    showAlert('error', 'Erreur de lecture', 'Impossible de lire le fichier Excel: ' + error.message);
+                    console.error(error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayDonneurData() {
+            // Clear previous data
+            donneurData.innerHTML = '';
+            
+            // Display donneur data
+            Object.entries(excelData.donneur).forEach(([key, value]) => {
+                if(key=='N') 
+                    return;
+
+                const dataItem = document.createElement('div');
+                dataItem.className = 'bg-white p-3 rounded shadow';
+                dataItem.innerHTML = `
+                    <p class="text-xs text-gray-500">${key.replace('_', ' ')}</p>
+                    <p class="font-medium">${value}</p>
+                `;
+                donneurData.appendChild(dataItem);
+            });
+        }
+
+        function displayBeneficiairesData() {
+            // Clear previous data
+            beneficiairesTable.innerHTML = '';
+            
+            // Display beneficiaires data
+            let total = 0;
+            let currencyValue = '';
+            let order = 0;
+            
+            excelData.beneficiaires.forEach(benef => {
+                order++;
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                
+                // Parse montant and add to total
+                let montant = benef.MONTANT || 0;
+                if (typeof montant === 'string') {
+                    if(!isNaN(Number(montant)) && /^\d+$/.test(montant))
+                        ;
+                    else
+                        showAlert("warning","Attention! Le montant du bénéficiaire "+order+" ("+benef.MONTANT+") n'est pas correct. Nous avons tenté de récupérer!");
+                    montant = parseInt(montant.replace(/[^\d.-]/g, '')) || 0;
+                }
+                total += montant;
+                
+                // Get currency
+                if (benef.Devise && !currencyValue) {
+                    currencyValue = benef.Devise;
+                }
+                
+                row.innerHTML = `
+                    <td class="py-2 px-4 border-b">${benef['N'] || '-'}</td>
+                    <td class="py-2 px-4 border-b">${benef['NOM_BENEFICIAIRE'] || '-'}</td>
+                    <td class="py-2 px-4 border-b">${benef['CODE_ETABLISSEMENT'] || '-'}</td>
+                    <td class="py-2 px-4 border-b">${benef['CODE_GUICHET'] || '-'}</td>
+                    <td class="py-2 px-4 border-b">${benef['NUMERO_COMPTE'] + '-' + benef['CLE_RIB'] || '-'}</td>
+                    <td class="py-2 px-4 border-b">${montant.toLocaleString('fr-FR', { style: 'currency', currency: excelData.donneur['DEVISE'] })}</td>
+                    <td class="py-2 px-4 border-b">${benef['MOTIF_VIREMENT'] || '-'}</td>
+                `;
+                beneficiairesTable.appendChild(row);
+            });
+            
+            // Update summary
+            benefCount.textContent = excelData.beneficiaires.length;
+            totalAmount.textContent = total.toLocaleString('fr-FR', { style: 'currency', currency:excelData.donneur['DEVISE']  });
+            currency.textContent = currencyValue || excelData.donneur['DEVISE'];
+        }
+
+        function processFile() {
+            try {
+               
+               
+                
+                    // Generate file content according to SOPRA specifications
+                let fileContent = '';
+
+
+                // Generate header record (Entête Donneur d'ordre)
+                const header = generateHeaderRecord();
+                fileContent += header + '\n';
+                
+                // Generate detail records (Détail virement bénéficiaire)
+                montantTotalDebit =  excelData.donneur.MONTANT;
+                montantTotalCredit=0;
+                
+                for (const benef of excelData.beneficiaires)
+                    montantTotalCredit= parseInt(montantTotalCredit) + parseInt(benef.MONTANT);
+
+                if(montantTotalCredit!=montantTotalDebit) {
+                    showAlert("danger","Total Débit != Total Crédit","Le total des crédits est différent du montant à débiter");
+                    return 1;
+                }
+
+                let i =1;
+                for (const benef of excelData.beneficiaires) {
+                    const detailRecord = generateDetailRecord(benef, i);
+                    i++;
+                    fileContent += detailRecord + '\n';
+                }
+                
+                // Store generated file
+                excelData.generatedFile = fileContent;
+                
+                // Display file preview
+                filePreview.textContent = fileContent;
+                
+                // Switch to result tab
+                switchTab('resultat');
+                
+                showAlert('success', 'Fichier généré', 'Le fichier a été généré avec succès !');
+                
+            } catch (error) {
+                showAlert('error', 'Erreur de génération', 'Impossible de générer le fichier: ' + error.message);
+                console.error(error);
+            }
+        }
+
+        function generateHeaderRecord() {
+            // Create a header record according to SOPRA specs (255 characters)
+            let record = '';
+            
+            // Code Type d'enregistrement (1 character, position 1-1)
+            record += '1';
+            
+            // Reference Donneur d'ordre pour le virement multiple (8 characters, position 2-9)
+            const refDonneur = (excelData.donneur['REFERENCE_VIREMENT']).toString().substring(0, 8).padEnd(8, ' ');
+            record += refDonneur;
+            
+            // Date d'exécution du virement multiple (6 characters, position 10-15)
+            //const dateExec = formatDate(excelData.donneur['DATE_EXECUTION'] || '');
+            const dateExec = excelData.donneur['DATE_EXECUTION'] || '';
+            record += dateExec;
+            
+            // Reference du client donneur d'ordre (36 characters, position 16 à 51)
+            const clientRef = (excelData.donneur['RAISON_SOCIALE'] || '').toString().substring(0, 36).padEnd(36, ' ');
+            record += clientRef;
+            
+            // Zone d'acheminement du compte donneur d'ordre (11 characters, position 52-56)
+            const codeEtab = (excelData.donneur['CODE_ETABLISSEMENT'] || '').toString().substring(0, 5).replace(' ','').padStart(5, '0');
+            
+            // code guichet (5 characters, position 57-61)
+            const codeGuichet = (excelData.donneur['CODE_GUICHET'] || '').toString().substring(0, 5).replace(' ','').padStart(5, '0');
+            
+            record += codeEtab + codeGuichet ;
+            
+            // Numéro de compte donneur d'ordre (16 characters, position 62-77 )
+            let ncp=excelData.donneur['NUMERO_COMPTE'].replace(' ','');
+            if(ncp.length<=10) ncp = ncp.padStart(11,'0');
+            const numCompte = (ncp || '').toString().substring(0, 16 ).padEnd(16, ' ');
+            record += numCompte;
+
+            // Clef RIB du compte donneur d'ordre (2 characters, position 78-79)
+            const cleRib = (excelData.donneur['CLE_RIB'] || '').toString().substring(0, 2).padEnd(2, '0');
+            record += cleRib;
+            
+            
+            // nombre de virements (6 characters, position 80-85 )
+            record += (excelData.donneur['NBRE_VIREMENT'] || '').toString().substring(0, 6).padStart(6, '0');
+            
+            // Montant total de virements (20 characters, position 86-105)
+            let total = 0;
+            for (const benef of excelData.beneficiaires) {
+                let montant = benef.MONTANT || 0;
+                if (typeof montant === 'string') {
+                    montant = parseFloat(montant.replace(/[^\d.-]/g, '')) || 0;
+                    //alert("En string" +montant);
+                }
+                //alert("En float" +montant);
+                total += montant;
+            }
+            
+            const totalFormatted = total.toString().padStart(20, '0');
+            //Math.round(total * 100).toString().padStart(20, '0');
+            record += totalFormatted;
+            
+            
+            // Motif (29 characters, position 106-135)
+            const motif = (excelData.donneur['MOTIF_VIREMENT'] || 'Virement multiple').toString().substring(0, 29).padEnd(29, ' ');
+            record += motif;
+            
+            // Filler (7 characters, position 136-141)
+            record += ' '.repeat(7);
+
+            // devise NUMERIQUE !!!!  (3 characters, position 142-144)
+            record += excelData.donneur['DEVISE_NUMERIQUE'].toString().substring(0, 3).padEnd(3, ' ');;
+
+            //identifiant national (13 characters, position 145-157)
+            record += ' '.repeat(13);
+
+            // filler  (102 characters, position 158-255)
+            record += ' '.repeat(102);
+            
+            // Ensure record is exactly 255 characters
+            return record.substring(0, 255);
+        }
+
+        function generateDetailRecord(benef, num) {
+            // Create a detail record according to SOPRA specs (255 characters)
+            let record = '';
+            
+            // Code Type d'enregistrement (1 character, position 1-1)
+            record += '2';
+            
+            // Référence du bénéficiaire (12 characters, position 2-13)
+            const refBenef = (num.toString().padStart  (3, '0') + excelData.donneur['REFERENCE_VIREMENT']).toString().substring(0, 12).padEnd(12, ' ');
+            record += refBenef;
+            
+            // Raison sociale du client bénéficiaire (36 characters, position 14-49)
+            const raisonSociale = (benef['NOM_BENEFICIAIRE'] || '').toString().substring(0, 36).padEnd(36, ' ');
+            record += raisonSociale;
+            
+            // Domiciliation bénéficiaire (24 characters, position 50-73)
+            const domiciliation = ' '.repeat(24);  // Usually bank name, not in sample
+            record += domiciliation;
+            
+            // Code établissement du compte bénéficiaire (5 characters, position 74-78)
+            const codeEtab = (benef['CODE_ETABLISSEMENT'] || '').toString().substring(0, 5).replace(' ','').padStart(5, '0');
+            record += codeEtab;
+            
+            // Code guichet du compte bénéficiaire (5 characters, position 79-83)
+            const codeGuichet = (benef['CODE_GUICHET'] || '').toString().substring(0, 5).replace(' ','').padStart(5, '0');
+            record += codeGuichet;
+            
+            // Numéro de compte bénéficiaire (16 characters, position 84-99)
+             let ncp=benef['NUMERO_COMPTE'].replace(' ','');
+            if(ncp.length<=10) ncp = ncp.padStart(11,'0');
+            const numCompte = (ncp   || '').toString().substring(0, 16).padEnd(16, ' ');
+            record += numCompte;
+            
+            // Clé RIB du compte bénéficiaire (2 characters, position 100-101)
+            const cleRib = (benef['CLE_RIB'] || '').toString().substring(0, 2).padEnd(2, ' ');
+            record += cleRib;
+            
+            // Montant du virement au bénéficiaire (20 characters, position 102-121)
+            let montant = benef.MONTANT || 0;
+            if (typeof montant === 'string') {
+                montant = parseFloat(montant.replace(/[^\d.-]/g, '')) || 0;
+            }
+            
+            // Format without decimals (multiply by 100)
+            const montantFormatted = montant.toString().padStart(20, '0');
+            //Math.round(montant * 100).toString().padStart(20, '0');
+            record += montantFormatted;
+            
+            // Motif du virement (30 characters, position 122-151)
+            const motif = (benef['MOTIF_VIREMENT'] || 'Virement').toString().substring(0, 30).padEnd(30, ' ');
+            record += motif;
+            
+            // Infos spécifiques télé-compensation (Fields like Adresse, Type de virement...)
+            // (Position 152-265)
+            // Pour simplifier, on remplit avec des espaces
+            record += ' '.repeat(104);
+            
+            // Ensure record is exactly 255 characters
+            return record.substring(0, 255);
+        }
+
+        function formatDate(dateStr) {
+            // Format date as JJMMAA (6 characters)
+            let formattedDate = '000000';
+            
+            try {
+                if (dateStr) {
+                    // Parse the date
+                    let date;
+                    if (typeof dateStr === 'string') {
+                        // Try to parse date in different formats (DD/MM/YYYY or YYYY-MM-DD)
+                        if (dateStr.includes('/')) {
+                            const parts = dateStr.split('/');
+                            date = new Date(parts[2], parts[1] - 1, parts[0]);
+                        } else {
+                            date = new Date(dateStr);
+                        }
+                    } else if (dateStr instanceof Date) {
+                        date = dateStr;
+                    }
+                    
+                    if (isNaN(date.getTime())) {
+                        throw new Error('Invalid date');
+                    }
+                    
+                    // Format as JJMMA
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = String(date.getFullYear()).slice(-1);
+                    
+                    formattedDate = day + month + year;
+                }
+            } catch (error) {
+                console.warn('Error formatting date:', error);
+            }
+            
+            return formattedDate.padEnd(5, '0');
+        }
+
+        function downloadFile() {
+            const prefix = filePrefix.value || "virements_multiples";
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '').substring(0, 15);
+            const filename = `${prefix}_${timestamp}.txt`;
+            
+            const blob = new Blob([excelData.generatedFile], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

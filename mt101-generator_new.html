@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur MT101 - CORIS Bank</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AJOUT: JSZip pour la création d'archives ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <i class="fas fa-paper-plane"></i>
+                <h1>Générateur MT101</h1>
+                <p class="subtitle">Messages de demande de virement - CORIS Bank UEMOA</p>
+            </div>
+        </header>
+
+        <main>
+            <div class="form-container">
+                <form id="mt101Form">
+                    <!-- Section 1: Type de virement -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-exchange-alt"></i> Type de Virement</h2>
+                        <div class="form-group">
+                            <label>Sélectionnez le type de virement à générer</label>
+                            <div
+                                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+                                <label class="radio-card">
+                                    <input type="radio" name="virementType" value="INTERNE" checked>
+                                    <div class="radio-card-content">
+                                        <i class="fas fa-building"></i>
+                                        <h4>Interne</h4>
+                                        <p>Même filiale</p>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="virementType" value="COMPENSE">
+                                    <div class="radio-card-content">
+                                        <i class="fas fa-university"></i>
+                                        <h4>Compensé</h4>
+                                        <p>Autres banques < 50M</p>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="virementType" value="RTGS">
+                                    <div class="radio-card-content">
+                                        <i class="fas fa-bolt"></i>
+                                        <h4>RTGS</h4>
+                                        <p>≥ 50M ou RTGS</p>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="virementType" value="ETRANGER">
+                                    <div class="radio-card-content">
+                                        <i class="fas fa-globe"></i>
+                                        <h4>Étranger</h4>
+                                        <p>International</p>
+                                    </div>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="virementType" value="MIXTE">
+                                    <div class="radio-card-content">
+                                        <i class="fas fa-layer-group"></i>
+                                        <h4>Mixte</h4>
+                                        <p>Tous types & Devises</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="typeDescription" class="info-section" style="margin-top: 20px;">
+                            <h4><i class="fas fa-info-circle"></i> Description</h4>
+                            <p id="typeDescriptionText"></p>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Filiale émettrice -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-building"></i> Filiale Émettrice</h2>
+                        <div class="form-group">
+                            <label for="filiale">Sélectionnez la filiale qui émet les MT101</label>
+                            <select id="filiale" name="filiale" required>
+                                <option value="">-- Choisir une filiale --</option>
+                                <option value="CORIBFBF">Coris Burkina (CORIBFBF - BF148)</option>
+                                <option value="CORIBJBJ">Coris Bénin (CORIBJBJ - BJ212)</option>
+                                <option value="CORICIAB">Coris Côte d'Ivoire (CORICIAB - CI166)</option>
+                                <option value="CORIGWGW">Coris Guinée Bissau (CORIGWGW - GW243)</option>
+                                <option value="CORIMLBA">Coris Mali (CORIMLBA - ML181)</option>
+                                <option value="CORINENI">Coris Niger (CORINENI - NE210)</option>
+                                <option value="CORISNDA">Coris Sénégal (CORISNDA - SN213)</option>
+                                <option value="CORITGTG">Coris Togo (CORITGTG - TG182)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Configuration de la génération -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-cogs"></i> Configuration de la Génération</h2>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="valueDate">Date de valeur <span class="required">*</span></label>
+                                <input type="date" id="valueDate" name="valueDate" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="fileCount">Nombre de fichiers <span class="required">*</span></label>
+                                <input type="number" id="fileCount" name="fileCount" min="1" max="100" value="1"
+                                    required>
+                                <small>Maximum: 100 fichiers</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transactionsPerFile">Nombre de transactions par fichier</label>
+                            <input type="number" id="transactionsPerFile" name="transactionsPerFile" min="1" max="500"
+                                value="10">
+                            <small>Nombre de MT101 par fichier (max 500)</small>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Configuration des montants -->
+                    <div class="form-section">
+                        <h2><i class="fas fa-coins"></i> Configuration des Montants</h2>
+
+                        <div id="currencySelector" class="form-group">
+                            <label for="currency">Devise</label>
+                            <select id="currency" name="currency">
+                                <option value="XOF" selected>XOF - Franc CFA</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="USD">USD - Dollar US</option>
+                                <option value="GBP">GBP - Livre Sterling</option>
+                                <option value="CHF">CHF - Franc Suisse</option>
+                                <option value="CAD">CAD - Dollar Canadien</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="minAmount">Montant minimum</label>
+                                <input type="number" id="minAmount" name="minAmount" value="10000" min="1" step="1">
+                                <small id="currencyLabel">XOF</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maxAmount">Montant maximum</label>
+                                <input type="number" id="maxAmount" name="maxAmount" value="1000000" min="1" step="1">
+                                <small id="currencyLabel2">XOF</small>
+                            </div>
+                        </div>
+
+                        <div id="amountPresets" class="amount-presets">
+                            <p>Préréglages rapides:</p>
+                            <button type="button" class="preset-btn" onclick="setMT101AmountRange('small')">Petits
+                                montants</button>
+                            <button type="button" class="preset-btn" onclick="setMT101AmountRange('medium')">Montants
+                                moyens</button>
+                            <button type="button" class="preset-btn" onclick="setMT101AmountRange('large')">Gros
+                                montants</button>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Options avancées -->
+                    <div class="form-section collapsible">
+                        <h2 onclick="toggleSection(this)">
+                            <i class="fas fa-chevron-down"></i> Options Avancées (Optionnel)
+                        </h2>
+                        <div class="collapsible-content" style="display: none;">
+                            <div class="form-group" id="chargeOptionGroup">
+                                <label for="chargeOption">Option de frais (71A)</label>
+                                <select id="chargeOption" name="chargeOption">
+                                    <option value="SHA" selected>SHA - Frais partagés</option>
+                                    <option value="OUR">OUR - Frais à la charge du donneur d'ordre</option>
+                                    <option value="BEN">BEN - Frais à la charge du bénéficiaire</option>
+                                </select>
+                                <small>Applicable surtout aux virements internationaux</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="customPurpose">Motif de paiement personnalisé (70)</label>
+                                <input type="text" id="customPurpose" placeholder="Ex: /ROC/SALAIRE/JANVIER2026">
+                                <small>Si vide, un motif sera généré aléatoirement</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="filePrefix">Préfixe du nom de fichier</label>
+                                <input type="text" id="filePrefix" placeholder="Ex: TEST_MT101" value="MT101">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="action-buttons">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-magic"></i> Générer les fichiers MT101
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="resetMT101Form()">
+                            <i class="fas fa-redo"></i> Réinitialiser
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="window.location.href='index.html'">
+                            <i class="fas fa-arrow-left"></i> Retour au menu
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Zone de résultats -->
+            <div id="resultSection" class="result-section" style="display: none;">
+                <h2><i class="fas fa-check-circle"></i> Fichiers générés avec succès!</h2>
+
+                <!-- AJOUT: Bouton de téléchargement groupé ZIP en haut -->
+                <div class="bulk-download-container"
+                    style="margin: 20px 0; text-align: center; padding: 20px; background: linear-gradient(135deg, #f0f7ff 0%, #e6f0fa 100%); border: 2px dashed #2c7cc1; border-radius: 12px;">
+                    <button class="btn-primary" onclick="downloadAllMT101Files()"
+                        style="font-size: 16px; padding: 12px 24px;">
+                        <i class="fas fa-file-archive"></i> Tout télécharger (ZIP)
+                    </button>
+                    <p style="margin-top: 8px; font-size: 13px; color: #666;">
+                        Télécharge tous les fichiers générés dans une archive ZIP
+                    </p>
+                </div>
+
+                <div id="generatedFiles" class="generated-files"></div>
+                <div class="result-actions">
+                    <button class="btn-primary" onclick="downloadAllMT101Files()">
+                        <i class="fas fa-download"></i> Télécharger tous les fichiers (ZIP)
+                    </button>
+                    <button class="btn-secondary" onclick="newMT101Generation()">
+                        <i class="fas fa-plus"></i> Nouvelle génération
+                    </button>
+                    <button class="btn-secondary" onclick="window.location.href='index.html'">
+                        <i class="fas fa-home"></i> Retour au menu
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 CORIS Bank UEMOA - Générateur MT101 pour tests CBS Amplitude</p>
+            <p style="margin-top: 10px; font-size: 13px;">
+                <a href="guide-mt101.html" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">📖 Guide
+                    MT101</a> |
+                <a href="test-mt101.html" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">🧪 Tests
+                    MT101</a> |
+                <a href="README_MT101.md" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">📄
+                    Documentation</a> |
+                <a href="index.html" style="color: #2c7cc1; text-decoration: none; margin: 0 10px;">🏠 Menu</a>
+            </p>
+        </footer>
+    </div>
+
+    <style>
+        .radio-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .radio-card input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-card-content {
+            background: #f8f9fa;
+            border: 2px solid #dce4ec;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .radio-card input[type="radio"]:checked+.radio-card-content {
+            background: linear-gradient(135deg, #2c7cc1, #1a5490);
+            color: white;
+            border-color: #1a5490;
+        }
+
+        .radio-card-content i {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #2c7cc1;
+        }
+
+        .radio-card input[type="radio"]:checked+.radio-card-content i {
+            color: white;
+        }
+
+        .radio-card-content h4 {
+            margin: 10px 0 5px 0;
+            font-size: 16px;
+        }
+
+        .radio-card-content p {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+    </style>
+
+    <script src="js/config.js"></script>
+    <script src="js/mt101-config.js"></script>
+    <script src="js/mt101-generator.js"></script>
+    <script src="js/mt101-main.js"></script>
+</body>
+
+</html>

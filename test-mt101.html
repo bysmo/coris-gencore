@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tests MT101 - Générateur SWIFT</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test-section {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        h1, h2 {
+            color: #4ec9b0;
+        }
+        .pass {
+            color: #4ec9b0;
+        }
+        .fail {
+            color: #f48771;
+        }
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .btn {
+            background: #0e639c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Tests du Générateur MT101</h1>
+
+    <div class="test-section">
+        <h2>1. Test de chargement des modules MT101</h2>
+        <button class="btn" onclick="testMT101Modules()">▶ Exécuter test</button>
+        <pre id="test1Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test de configuration des types de virements</h2>
+        <button class="btn" onclick="testMT101Types()">▶ Exécuter test</button>
+        <pre id="test2Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test de génération de référence MT101</h2>
+        <button class="btn" onclick="testMT101Reference()">▶ Exécuter test</button>
+        <pre id="test3Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test de formatage de montant MT101</h2>
+        <button class="btn" onclick="testMT101AmountFormatting()">▶ Exécuter test</button>
+        <pre id="test4Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Test de génération MT101 - Virement Interne</h2>
+        <button class="btn" onclick="testMT101GenerationInterne()">▶ Exécuter test</button>
+        <pre id="test5Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Test de génération MT101 - Virement Compensé</h2>
+        <button class="btn" onclick="testMT101GenerationCompense()">▶ Exécuter test</button>
+        <pre id="test6Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Test de génération MT101 - Virement RTGS</h2>
+        <button class="btn" onclick="testMT101GenerationRTGS()">▶ Exécuter test</button>
+        <pre id="test7Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>8. Test de génération MT101 - Virement Étranger</h2>
+        <button class="btn" onclick="testMT101GenerationEtranger()">▶ Exécuter test</button>
+        <pre id="test8Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>9. Test de génération multiple MT101</h2>
+        <button class="btn" onclick="testMT101MultipleGeneration()">▶ Exécuter test</button>
+        <pre id="test9Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <button class="btn" onclick="runAllMT101Tests()" style="background: #4ec9b0; font-weight: bold;">▶▶ EXÉCUTER TOUS LES TESTS</button>
+        <button class="btn" onclick="window.location.href='mt101-generator.html'" style="background: #2c7cc1;">← Retour au générateur</button>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/mt101-config.js"></script>
+    <script src="js/mt101-generator.js"></script>
+
+    <script>
+        function log(elementId, message, isPass = true) {
+            const element = document.getElementById(elementId);
+            const status = isPass ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+            element.innerHTML += `${status} ${message}\n`;
+        }
+
+        function clear(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        function testMT101Modules() {
+            clear('test1Result');
+            try {
+                log('test1Result', 'Module MT101_TYPES chargé: ' + Object.keys(MT101_TYPES).length + ' types', true);
+                log('test1Result', 'Module INTERNATIONAL_BANKS chargé: ' + INTERNATIONAL_BANKS.length + ' banques', true);
+                log('test1Result', 'Module UEMOA_BANKS chargé: ' + UEMOA_BANKS.length + ' banques', true);
+                log('test1Result', 'Module CORPORATE_CLIENTS chargé: ' + CORPORATE_CLIENTS.length + ' clients', true);
+                log('test1Result', 'Module BENEFICIARIES chargé: ' + BENEFICIARIES.length + ' bénéficiaires', true);
+                log('test1Result', 'Classe MT101Generator disponible: ' + (typeof MT101Generator !== 'undefined'), true);
+            } catch (e) {
+                log('test1Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101Types() {
+            clear('test2Result');
+            try {
+                const types = ['INTERNE', 'COMPENSE', 'RTGS', 'ETRANGER'];
+                types.forEach(type => {
+                    const config = MT101_TYPES[type];
+                    log('test2Result', `Type ${type} configuré: ${config.name}`, true);
+                    log('test2Result', `  - Description: ${config.description}`, true);
+                });
+            } catch (e) {
+                log('test2Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101Reference() {
+            clear('test3Result');
+            try {
+                const ref1 = generateMT101Reference();
+                const ref2 = generateMT101Reference();
+                
+                log('test3Result', `Référence 1: ${ref1}`, ref1.startsWith('MT101AUTO'));
+                log('test3Result', `Référence 2: ${ref2}`, ref2.startsWith('MT101AUTO'));
+                log('test3Result', `Références uniques: ${ref1 !== ref2}`, ref1 !== ref2);
+                
+                const seqNum = generateMT101SequenceNumber();
+                log('test3Result', `Numéro de séquence: ${seqNum}`, seqNum >= 1000000000);
+            } catch (e) {
+                log('test3Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101AmountFormatting() {
+            clear('test4Result');
+            try {
+                const generator = new MT101Generator({});
+                
+                // Test montants XOF
+                const xof1 = generator.formatMT101Amount(150000000, 'XOF');
+                log('test4Result', `150M XOF → ${xof1}`, xof1 === '150000000,');
+                
+                const xof2 = generator.formatMT101Amount(175000, 'XOF');
+                log('test4Result', `175K XOF → ${xof2}`, xof2 === '175000,');
+                
+                // Test devises étrangères
+                const eur = generator.formatMT101Amount(1250.50, 'EUR');
+                log('test4Result', `1250.50 EUR → ${eur}`, eur === '1250,50');
+                
+                const gbp = generator.formatMT101Amount(2, 'GBP');
+                log('test4Result', `2 GBP → ${gbp}`, gbp === '2,00');
+            } catch (e) {
+                log('test4Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101GenerationInterne() {
+            clear('test5Result');
+            try {
+                const generator = new MT101Generator({});
+                const filiale = FILIALES['CORIBFBF'];
+                
+                const config = {
+                    minAmount: 10000,
+                    maxAmount: 1000000,
+                    valueDate: new Date('2026-01-27')
+                };
+                
+                const transaction = generator.generateTransaction('INTERNE', filiale, config);
+                const mt101 = generator.generateMT101(transaction);
+                
+                log('test5Result', 'MT101 Interne généré avec succès', mt101.length > 0);
+                log('test5Result', 'Contient Block 1: ' + mt101.includes('{1:F01'), mt101.includes('{1:F01'));
+                log('test5Result', 'Contient Block 2: ' + mt101.includes('{2:O101'), mt101.includes('{2:O101'));
+                log('test5Result', 'Contient :20: (référence)', mt101.includes(':20:'), mt101.includes(':20:'));
+                log('test5Result', 'Contient :50H: (donneur d\'ordre)', mt101.includes(':50H:'), mt101.includes(':50H:'));
+                log('test5Result', 'Contient :32B: (montant)', mt101.includes(':32B:'), mt101.includes(':32B:'));
+                log('test5Result', 'Contient XOF: ' + mt101.includes('XOF'), mt101.includes('XOF'));
+                log('test5Result', 'Contient :71A:SHA', mt101.includes(':71A:SHA'), mt101.includes(':71A:SHA'));
+                
+                log('test5Result', '\n--- Extrait du MT101 Interne ---', true);
+                log('test5Result', mt101.substring(0, 300) + '...', true);
+            } catch (e) {
+                log('test5Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101GenerationCompense() {
+            clear('test6Result');
+            try {
+                const generator = new MT101Generator({});
+                const filiale = FILIALES['CORIBFBF'];
+                
+                const config = {
+                    minAmount: 100000,
+                    maxAmount: 10000000,
+                    valueDate: new Date('2026-01-27')
+                };
+                
+                const transaction = generator.generateTransaction('COMPENSE', filiale, config);
+                const mt101 = generator.generateMT101(transaction);
+                
+                log('test6Result', 'MT101 Compensé généré avec succès', mt101.length > 0);
+                log('test6Result', 'Contient :57A: (banque bénéficiaire)', mt101.includes(':57A:'), mt101.includes(':57A:'));
+                log('test6Result', 'Contient XOF', mt101.includes('XOF'), mt101.includes('XOF'));
+                
+                log('test6Result', '\n--- Extrait du MT101 Compensé ---', true);
+                log('test6Result', mt101.substring(0, 250) + '...', true);
+            } catch (e) {
+                log('test6Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101GenerationRTGS() {
+            clear('test7Result');
+            try {
+                const generator = new MT101Generator({});
+                const filiale = FILIALES['CORIBFBF'];
+                
+                const config = {
+                    minAmount: 50000000,
+                    maxAmount: 500000000,
+                    valueDate: new Date('2026-01-27')
+                };
+                
+                const transaction = generator.generateTransaction('RTGS', filiale, config);
+                const mt101 = generator.generateMT101(transaction);
+                
+                log('test7Result', 'MT101 RTGS généré avec succès', mt101.length > 0);
+                log('test7Result', 'Contient XOF', mt101.includes('XOF'), mt101.includes('XOF'));
+                
+                log('test7Result', '\n--- Extrait du MT101 RTGS ---', true);
+                log('test7Result', mt101.substring(0, 250) + '...', true);
+            } catch (e) {
+                log('test7Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101GenerationEtranger() {
+            clear('test8Result');
+            try {
+                const generator = new MT101Generator({});
+                const filiale = FILIALES['CORIBFBF'];
+                
+                const config = {
+                    minAmount: 100,
+                    maxAmount: 10000,
+                    valueDate: new Date('2026-01-27'),
+                    chargeOption: 'OUR'
+                };
+                
+                const transaction = generator.generateTransaction('ETRANGER', filiale, config);
+                const mt101 = generator.generateMT101(transaction);
+                
+                log('test8Result', 'MT101 Étranger généré avec succès', mt101.length > 0);
+                log('test8Result', 'Contient devise étrangère (EUR/USD/GBP...)', 
+                    mt101.includes('EUR') || mt101.includes('USD') || mt101.includes('GBP'), 
+                    mt101.includes('EUR') || mt101.includes('USD') || mt101.includes('GBP'));
+                log('test8Result', 'Contient :71A:OUR', mt101.includes(':71A:OUR'), mt101.includes(':71A:OUR'));
+                
+                log('test8Result', '\n--- Extrait du MT101 Étranger ---', true);
+                log('test8Result', mt101.substring(0, 300) + '...', true);
+            } catch (e) {
+                log('test8Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT101MultipleGeneration() {
+            clear('test9Result');
+            try {
+                const generator = new MT101Generator({});
+                const filiale = FILIALES['CORIBFBF'];
+                
+                const config = {
+                    type: 'INTERNE',
+                    filiale: filiale,
+                    fileCount: 2,
+                    transactionsPerFile: 5,
+                    minAmount: 10000,
+                    maxAmount: 500000,
+                    valueDate: new Date('2026-01-27'),
+                    filePrefix: 'TEST_MT101'
+                };
+                
+                const files = generator.generateAllFiles(config);
+                
+                log('test9Result', `Nombre de fichiers générés: ${files.length}`, files.length === 2);
+                log('test9Result', `Fichier 1 - Transactions: ${files[0].messagesCount}`, files[0].messagesCount === 5);
+                log('test9Result', `Fichier 2 - Transactions: ${files[1].messagesCount}`, files[1].messagesCount === 5);
+                log('test9Result', `Nom fichier conforme: ${files[0].name.startsWith('TEST_MT101')}`, files[0].name.startsWith('TEST_MT101'));
+                log('test9Result', `Contenu non vide: ${files[0].content.length > 0}`, files[0].content.length > 0);
+                
+                log('test9Result', `\nDétails fichier 1:`, true);
+                log('test9Result', `- Nom: ${files[0].name}`, true);
+                log('test9Result', `- Type: ${files[0].type}`, true);
+                log('test9Result', `- Filiale: ${files[0].filiale}`, true);
+                log('test9Result', `- Taille: ${(files[0].content.length / 1024).toFixed(2)} KB`, true);
+            } catch (e) {
+                log('test9Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function runAllMT101Tests() {
+            testMT101Modules();
+            setTimeout(() => testMT101Types(), 100);
+            setTimeout(() => testMT101Reference(), 200);
+            setTimeout(() => testMT101AmountFormatting(), 300);
+            setTimeout(() => testMT101GenerationInterne(), 400);
+            setTimeout(() => testMT101GenerationCompense(), 500);
+            setTimeout(() => testMT101GenerationRTGS(), 600);
+            setTimeout(() => testMT101GenerationEtranger(), 700);
+            setTimeout(() => testMT101MultipleGeneration(), 800);
+        }
+    </script>
+</body>
+</html>

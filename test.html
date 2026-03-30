@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Générateur MT103 RTGS</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test-section {
+            background: #252526;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        h1, h2 {
+            color: #4ec9b0;
+        }
+        .pass {
+            color: #4ec9b0;
+        }
+        .fail {
+            color: #f48771;
+        }
+        pre {
+            background: #1e1e1e;
+            border: 1px solid #3e3e42;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .btn {
+            background: #0e639c;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #1177bb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Tests du Générateur MT103 RTGS BCEAO</h1>
+
+    <div class="test-section">
+        <h2>1. Test de chargement des modules</h2>
+        <button class="btn" onclick="testModules()">▶ Exécuter test</button>
+        <pre id="test1Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test de validation IBAN</h2>
+        <button class="btn" onclick="testIBANValidation()">▶ Exécuter test</button>
+        <pre id="test2Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test de génération de référence</h2>
+        <button class="btn" onclick="testReferenceGeneration()">▶ Exécuter test</button>
+        <pre id="test3Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test de formatage de date SWIFT</h2>
+        <button class="btn" onclick="testDateFormatting()">▶ Exécuter test</button>
+        <pre id="test4Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Test de formatage de montant</h2>
+        <button class="btn" onclick="testAmountFormatting()">▶ Exécuter test</button>
+        <pre id="test5Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Test de génération MT103 complet</h2>
+        <button class="btn" onclick="testMT103Generation()">▶ Exécuter test</button>
+        <pre id="test6Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>7. Test de génération multiple</h2>
+        <button class="btn" onclick="testMultipleGeneration()">▶ Exécuter test</button>
+        <pre id="test7Result"></pre>
+    </div>
+
+    <div class="test-section">
+        <button class="btn" onclick="runAllTests()" style="background: #4ec9b0; font-weight: bold;">▶▶ EXÉCUTER TOUS LES TESTS</button>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/mt103-generator.js"></script>
+
+    <script>
+        function log(elementId, message, isPass = true) {
+            const element = document.getElementById(elementId);
+            const status = isPass ? '<span class="pass">✓ PASS</span>' : '<span class="fail">✗ FAIL</span>';
+            element.innerHTML += `${status} ${message}\n`;
+        }
+
+        function clear(elementId) {
+            document.getElementById(elementId).innerHTML = '';
+        }
+
+        function testModules() {
+            clear('test1Result');
+            try {
+                log('test1Result', 'Module FILIALES chargé: ' + Object.keys(FILIALES).length + ' filiales', true);
+                log('test1Result', 'Module SENDING_BANKS chargé: ' + SENDING_BANKS.length + ' banques', true);
+                log('test1Result', 'Module CLIENT_NAMES chargé: ' + CLIENT_NAMES.length + ' noms', true);
+                log('test1Result', 'Classe MT103Generator disponible: ' + (typeof MT103Generator !== 'undefined'), true);
+            } catch (e) {
+                log('test1Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testIBANValidation() {
+            clear('test2Result');
+            try {
+                const validIBANs = [
+                    'ML1810100200041802510100',
+                    'BF1234567890123456789012',
+                    'CI9876543210987654321098',
+                    'SN1111222233334444555566'
+                ];
+
+                const invalidIBANs = [
+                    'FR1234567890',
+                    'INVALID',
+                    '123456',
+                    'XX1234567890123456789012'
+                ];
+
+                validIBANs.forEach(iban => {
+                    const result = isValidIBAN(iban);
+                    log('test2Result', `IBAN ${iban}: ${result ? 'VALIDE' : 'INVALIDE'}`, result);
+                });
+
+                invalidIBANs.forEach(iban => {
+                    const result = !isValidIBAN(iban);
+                    log('test2Result', `IBAN ${iban}: ${result ? 'CORRECTEMENT REJETÉ' : 'ERREUR - ACCEPTÉ'}`, result);
+                });
+            } catch (e) {
+                log('test2Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testReferenceGeneration() {
+            clear('test3Result');
+            try {
+                const ref1 = generateSwiftReference();
+                const ref2 = generateSwiftReference();
+                
+                log('test3Result', `Référence 1: ${ref1}`, ref1.startsWith('O01SIP'));
+                log('test3Result', `Référence 2: ${ref2}`, ref2.startsWith('O01SIP'));
+                log('test3Result', `Références uniques: ${ref1 !== ref2}`, ref1 !== ref2);
+                
+                const uuid = generateUUID();
+                log('test3Result', `UUID généré: ${uuid}`, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid));
+            } catch (e) {
+                log('test3Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testDateFormatting() {
+            clear('test4Result');
+            try {
+                const testDate = new Date('2026-01-27T09:38:00');
+                const formattedDate = formatSwiftDate(testDate);
+                const formattedTime = formatSwiftTime(testDate);
+                
+                log('test4Result', `Date SWIFT: ${formattedDate}`, formattedDate === '260127');
+                log('test4Result', `Heure SWIFT: ${formattedTime}`, formattedTime === '0938');
+            } catch (e) {
+                log('test4Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testAmountFormatting() {
+            clear('test5Result');
+            try {
+                const amounts = [
+                    { input: 30000, expected: '30000,' },
+                    { input: 1250000, expected: '1250000,' },
+                    { input: 125000.50, expected: '125001,' }, // Arrondi
+                    { input: 5000000, expected: '5000000,' }
+                ];
+
+                amounts.forEach(({ input, expected }) => {
+                    const result = formatSwiftAmount(input);
+                    log('test5Result', `Montant ${input} XOF → ${result}`, result === expected);
+                });
+            } catch (e) {
+                log('test5Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMT103Generation() {
+            clear('test6Result');
+            try {
+                const generator = new MT103Generator({});
+                const testIBAN = 'ML1810100200041802510100';
+                const senderBank = SENDING_BANKS[0];
+                const receiverFiliale = FILIALES['CORIMLBA'];
+                const valueDate = new Date('2026-01-27');
+                const amount = 350000;
+                
+                const mt103 = generator.generateMT103(
+                    testIBAN,
+                    senderBank,
+                    receiverFiliale,
+                    valueDate,
+                    amount,
+                    'TRAORE SEYDOU',
+                    'VIREMENT PERMANENT'
+                );
+
+                log('test6Result', 'Message MT103 généré avec succès', mt103.length > 0);
+                log('test6Result', 'Contient Block 1 (Basic Header): ' + mt103.includes('{1:F'), mt103.includes('{1:F'));
+                log('test6Result', 'Contient Block 2 (App Header): ' + mt103.includes('{2:O103'), mt103.includes('{2:O103'));
+                log('test6Result', 'Contient Block 3 (User Header): ' + mt103.includes('{3:'), mt103.includes('{3:'));
+                log('test6Result', 'Contient Block 4 (Text): ' + mt103.includes(':20:'), mt103.includes(':20:'));
+                log('test6Result', 'Contient IBAN bénéficiaire: ' + mt103.includes(testIBAN), mt103.includes(testIBAN));
+                log('test6Result', 'Contient montant XOF: ' + mt103.includes('XOF'), mt103.includes('XOF'));
+                log('test6Result', 'Contient Block 5 (Trailer): ' + mt103.includes('{5:'), mt103.includes('{5:'));
+                
+                log('test6Result', '\n--- Extrait du message généré ---', true);
+                log('test6Result', mt103.substring(0, 300) + '...', true);
+            } catch (e) {
+                log('test6Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function testMultipleGeneration() {
+            clear('test7Result');
+            try {
+                const generator = new MT103Generator({});
+                const testIBANs = [
+                    'ML1810100200041802510100',
+                    'BF1234567890123456789012',
+                    'CI9876543210987654321098'
+                ];
+                
+                const config = {
+                    filiale: 'CORIMLBA',
+                    valueDate: new Date('2026-01-27'),
+                    fileCount: 2,
+                    transactionsPerFile: 5,
+                    minAmount: 50000,
+                    maxAmount: 1000000,
+                    filePrefix: 'TEST_MT103'
+                };
+
+                const files = generator.generateAllFiles(testIBANs, config);
+                
+                log('test7Result', `Nombre de fichiers générés: ${files.length}`, files.length === 2);
+                log('test7Result', `Fichier 1 - Transactions: ${files[0].messagesCount}`, files[0].messagesCount === 5);
+                log('test7Result', `Fichier 2 - Transactions: ${files[1].messagesCount}`, files[1].messagesCount === 5);
+                log('test7Result', `Nom fichier conforme: ${files[0].name.startsWith('TEST_MT103')}`, files[0].name.startsWith('TEST_MT103'));
+                log('test7Result', `Contenu non vide: ${files[0].content.length > 0}`, files[0].content.length > 0);
+                
+                log('test7Result', `\nDétails fichier 1:`, true);
+                log('test7Result', `- Nom: ${files[0].name}`, true);
+                log('test7Result', `- Filiale: ${files[0].filiale}`, true);
+                log('test7Result', `- Taille: ${(files[0].content.length / 1024).toFixed(2)} KB`, true);
+            } catch (e) {
+                log('test7Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
+        function runAllTests() {
+            testModules();
+            setTimeout(() => testIBANValidation(), 100);
+            setTimeout(() => testReferenceGeneration(), 200);
+            setTimeout(() => testDateFormatting(), 300);
+            setTimeout(() => testAmountFormatting(), 400);
+            setTimeout(() => testMT103Generation(), 500);
+            setTimeout(() => testMultipleGeneration(), 600);
+        }
+    </script>
+</body>
+</html>
