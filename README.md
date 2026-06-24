@@ -444,3 +444,4 @@ Pour toute question ou problème :
 **Développé pour** : CORIS Bank UEMOA - Tests CBS Amplitude  
 **Messages supportés** : MT103 RTGS, MT910, MT101
 # coris-gencore
+# easybank
