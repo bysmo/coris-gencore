@@ -942,3 +942,94 @@ footer {
     background: #229954;
     transform: translateY(-2px);
 }
+
+/* ── Restructured Dashboard Category Cards & Badges ───────────────────────── */
+.category-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 25px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.category-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-4px);
+    border-color: var(--primary-color);
+}
+
+.category-card h3 {
+    font-size: 18px;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-weight: 700;
+}
+
+.category-desc {
+    font-size: 13px;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.badge-item {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 11px;
+}
+
+.badge-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.badge-item .badge-tag {
+    padding: 4px 8px;
+    font-weight: 700;
+    color: white;
+}
+
+.badge-item.mt-badge {
+    border-color: rgba(26, 84, 144, 0.2);
+}
+
+.badge-item.mt-badge .badge-tag {
+    background-color: var(--primary-color);
+}
+
+.badge-item.mx-badge {
+    border-color: rgba(39, 174, 96, 0.2);
+}
+
+.badge-item.mx-badge .badge-tag {
+    background-color: #27ae60;
+}
+
+.badge-item .badge-text {
+    padding: 4px 8px;
+    background-color: #f8f9fa;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.badge-item:hover .badge-text {
+    background-color: #f0f3f4;
+}

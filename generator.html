@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur SWIFT & ISO 20022 - CORIS Bank</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Styles additionnels pour l'unification */
+        .badge-type {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 10px;
+        }
+
+        .badge-mt {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .badge-mx {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .import-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .code-template {
+            font-family: 'Courier New', Courier, monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body class="iframe-page" style="background: transparent;">
+
+    <main class="main-content">
+        <header class="content-header">
+            <h1 id="generatorTitle" style="display:flex; align-items:center;">
+                Générateur de Message
+                <span id="formatBadge" class="badge-type badge-mt">MT103</span>
+            </h1>
+            <p id="generatorSubtitle">Chargement du module...</p>
+        </header>
+
+        <div class="form-container">
+            <form id="unifiedForm">
+                <!-- SECTION 1: FILIALE -->
+                <div class="form-section">
+                    <h2><i class="fas fa-building"></i> Filiale Destinataire / Émettrice</h2>
+                    <div class="form-group">
+                        <label for="filiale">Sélectionnez la filiale Coris concernée par ce message</label>
+                        <select id="filiale" name="filiale" required>
+                            <option value="">-- Choisir une filiale --</option>
+                            <optgroup label="Zone UEMOA (Devise : XOF)">
+                                <option value="CORIBFBF">Coris Burkina (CORIBFBF)</option>
+                                <option value="CORIBJBJ">Coris Bénin (CORIBJBJ)</option>
+                                <option value="CORICIAB">Coris Côte d'Ivoire (CORICIAB)</option>
+                                <option value="CORIGWGW">Coris Guinée Bissau (CORIGWGW)</option>
+                                <option value="CORIMLBA">Coris Mali (CORIMLBA)</option>
+                                <option value="CORINENI">Coris Niger (CORINENI)</option>
+                                <option value="CORISNDA">Coris Sénégal (CORISNDA)</option>
+                                <option value="CORITGTG">Coris Togo (CORITGTG)</option>
+                            </optgroup>
+                            <optgroup label="Zone CEMAC (Devise : XAF)">
+                                <option value="CORICMXA">Coris Cameroun (CORICMXA)</option>
+                                <option value="CORICOXA">Coris Congo (CORICOXA)</option>
+                                <option value="CORIGAXA">Coris Gabon (CORIGAXA)</option>
+                                <option value="CORITDXA">Coris Tchad (CORITDXA)</option>
+                                <option value="CORICFXA">Coris Centrafrique (CORICFXA)</option>
+                                <option value="CORICMGQ">Coris Guinée Équatoriale (CORICMGQ)</option>
+                            </optgroup>
+                            <optgroup label="Zone BCRG (Devise : GNF)">
+                                <option value="CORIGNGN">Coris Guinée (CORIGNGN)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: CONFIGURATION -->
+                <div class="form-section">
+                    <h2><i class="fas fa-cogs"></i> Configuration Générale</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="valueDate">Date de valeur <span class="required">*</span></label>
+                            <input type="date" id="valueDate" name="valueDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fileCount">Nombre de fichiers à générer <span class="required">*</span></label>
+                            <input type="number" id="fileCount" name="fileCount" min="1" max="100" value="1" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Spécifique Flux / Virements -->
+                    <div id="flowConfigGroup" class="form-group">
+                        <label for="transactionsPerFile">Transactions par fichier</label>
+                        <input type="number" id="transactionsPerFile" name="transactionsPerFile" min="1" max="1000" value="10">
+                        <small>Nombre de transactions à insérer dans chaque fichier (max 1000)</small>
+                    </div>
+
+                    <!-- Spécifique Camt.054 (Debit vs Credit) -->
+                    <div id="camtConfigGroup" class="form-group" style="display: none;">
+                        <label for="reportingType">Type de notification (camt.054)</label>
+                        <select id="reportingType" name="reportingType">
+                            <option value="credit" selected>CRDT - Avis de crédit</option>
+                            <option value="debit">DBIT - Avis de débit</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: IMPORT DONNEES (Dynamique selon format) -->
+                <div class="form-section">
+                    <div class="import-section-header">
+                        <h2 id="importTitle"><i class="fas fa-file-import"></i> Chargement des Bénéficiaires</h2>
+                        <div>
+                            <label style="margin-right: 15px; cursor: pointer;">
+                                <input type="radio" name="importMode" value="file" checked> Fichier
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="importMode" value="manual"> Saisie Manuelle
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Mode Fichier -->
+                    <div id="fileImportSection">
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p id="uploadInstructions">Glissez-déposez le fichier d'IBANs ici</p>
+                            <p class="file-format-info" id="uploadAllowedFormats">Formats acceptés: CSV, TXT (un IBAN par ligne)</p>
+                            <input type="file" id="importFile" accept=".csv,.txt" hidden>
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('importFile').click()">
+                                <i class="fas fa-folder-open"></i> Parcourir
+                            </button>
+                        </div>
+                        <div id="fileInfo" class="file-card" style="display: none; margin-top: 15px;">
+                            <div class="file-icon"><i class="fas fa-file-csv"></i></div>
+                            <div class="file-info">
+                                <h3 id="uploadedFileName">nom_du_fichier.csv</h3>
+                                <p id="uploadedFileInfo">0 ligne(s) détectée(s)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode Saisie Manuelle -->
+                    <div id="manualImportSection" style="display: none;">
+                        <textarea id="manualText" rows="8" placeholder="Format attendu..."></textarea>
+                        <small id="manualInstructions">Saisissez les données, une ligne par élément.</small>
+                    </div>
+
+                    <!-- Aperçu des Données -->
+                    <div id="dataPreview" class="iban-preview" style="display: none;">
+                        <h3 id="previewTitle">Bénéficiaires chargés: <span id="previewCount">0</span></h3>
+                        <div id="previewList" class="iban-list"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION CBPR+ RECUS (Rapatriement) -->
+                <div class="form-section" id="cbprRecusFields" style="display: none;">
+                    <h2><i class="fas fa-sign-in-alt"></i> Détails Message Reçu (Rapatriement)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cbprSenderBic">BIC Banque Émettrice (Étranger) <span class="required">*</span></label>
+                            <input type="text" id="cbprSenderBic" name="cbprSenderBic" placeholder="Ex: CITIGB2LXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label for="cbprOrderingAccount">Compte Donneur d'Ordre (Étranger) <span class="required">*</span></label>
+                            <input type="text" id="cbprOrderingAccount" name="cbprOrderingAccount" placeholder="Ex: GB12CITI987654321">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION CBPR+ EMIS (Transfert International) -->
+                <div class="form-section" id="cbprEmisFields" style="display: none;">
+                    <h2><i class="fas fa-sign-out-alt"></i> Détails Message Émis (Transfert)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cbprDestBic">BIC Banque de Destination <span class="required">*</span></label>
+                            <input type="text" id="cbprDestBic" name="cbprDestBic" placeholder="Ex: CHASUS33XXXX">
+                        </div>
+                        <div class="form-group">
+                            <label for="cbprCoverBic">BIC Banque de Couverture (Optionnel)</label>
+                            <input type="text" id="cbprCoverBic" name="cbprCoverBic" placeholder="Ex: DEUTDEFFXXXX">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cbprBeneficiaryAccount">Numéro de compte du Bénéficiaire (Étranger) <span class="required">*</span></label>
+                        <input type="text" id="cbprBeneficiaryAccount" name="cbprBeneficiaryAccount" placeholder="Ex: US9876543210">
+                    </div>
+                </div>
+
+                <!-- SECTION 4: MONTANTS (Uniquement pour Flux) -->
+                <div class="form-section" id="amountSection">
+                    <h2><i class="fas fa-coins"></i> Configuration des Montants (<span class="currency-label">XOF</span>)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="minAmount">Montant minimum</label>
+                            <input type="number" id="minAmount" name="minAmount" value="10000" min="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="maxAmount">Montant maximum</label>
+                            <input type="number" id="maxAmount" name="maxAmount" value="5000000" min="1000">
+                        </div>
+                    </div>
+                    <div class="amount-presets">
+                        <p>Préréglages rapides:</p>
+                        <button type="button" class="preset-btn" onclick="setPresetAmounts(5000, 100000)">Petits</button>
+                        <button type="button" class="preset-btn" onclick="setPresetAmounts(50000, 1000000)">Moyens</button>
+                        <button type="button" class="preset-btn" onclick="setPresetAmounts(500000, 10000000)">Gros</button>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: SOLDES / COMPTE (Uniquement pour Reporting Relevés) -->
+                <div class="form-section" id="statementSection" style="display: none;">
+                    <h2><i class="fas fa-university"></i> Soldes et Compte</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accountNumber">Numéro de compte / Code RTGS</label>
+                            <input type="text" id="accountNumber" name="accountNumber" placeholder="Ex: 123456789">
+                        </div>
+                        <div class="form-group">
+                            <label for="initialBalance">Solde initial de compte</label>
+                            <input type="number" id="initialBalance" name="initialBalance" value="150000000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: OPTIONS AVANCEES -->
+                <div class="form-section collapsible">
+                    <h2 onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-down"></i> Options Avancées
+                    </h2>
+                    <div class="collapsible-content" style="display: none;">
+                        <!-- Commun -->
+                        <div class="form-group">
+                            <label for="filePrefix">Préfixe du nom de fichier</label>
+                            <input type="text" id="filePrefix" name="filePrefix" placeholder="Ex: TEST_MT103">
+                        </div>
+
+                        <!-- Flux seulement -->
+                        <div id="flowAdvancedOptions">
+                            <div class="form-group" id="currencyGroup" style="display: none;">
+                                <label for="currency">Devise de transaction</label>
+                                <select id="currency" name="currency">
+                                    <option value="XOF">XOF - Franc CFA UEMOA</option>
+                                    <option value="XAF">XAF - Franc CFA CEMAC</option>
+                                    <option value="GNF">GNF - Franc Guinéen</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                    <option value="USD">USD - Dollar US</option>
+                                    <option value="GBP">GBP - Livre Sterling</option>
+                                    <option value="CHF">CHF - Franc Suisse</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="orderingCustomer">Nom du donneur d'ordre</label>
+                                <input type="text" id="orderingCustomer" name="orderingCustomer" placeholder="Ex: GROUP CORIS INTERNATIONAL">
+                            </div>
+                            <div class="form-group">
+                                <label for="ultimateDebtor">Débiteur Ultime (Ultimate Debtor - Optionnel)</label>
+                                <input type="text" id="ultimateDebtor" name="ultimateDebtor" placeholder="Ex: SOCIETE MERE SA">
+                            </div>
+                            <div class="form-group">
+                                <label for="initiatingParty">Partie Initiatrice (Initiating Party - Optionnel)</label>
+                                <input type="text" id="initiatingParty" name="initiatingParty" placeholder="Ex: INTEGRATOR SERVICES">
+                            </div>
+                            <div class="form-group">
+                                <label for="ultimateCreditor">Créancier Ultime (Ultimate Creditor - Optionnel)</label>
+                                <input type="text" id="ultimateCreditor" name="ultimateCreditor" placeholder="Ex: EXPORT SUPPLIER LTD">
+                            </div>
+                            <div class="form-group">
+                                <label for="remittanceInfo">Motif / Information de paiement (70 / Ustrd)</label>
+                                <input type="text" id="remittanceInfo" name="remittanceInfo" placeholder="Ex: PAIEMENT FACTURE SALAIRE">
+                            </div>
+                            <div class="form-group" id="chargeOptionGroup">
+                                <label for="chargeOption">Option de frais (71A)</label>
+                                <select id="chargeOption" name="chargeOption">
+                                    <option value="SHA" selected>SHA - Frais partagés</option>
+                                    <option value="OUR">OUR - Frais à la charge de l'émetteur</option>
+                                    <option value="BEN">BEN - Frais à la charge du bénéficiaire</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTION BUTTONS -->
+                <div class="action-buttons">
+                    <button type="submit" class="btn-primary" id="btnSubmit">
+                        <i class="fas fa-magic"></i> Générer les Fichiers
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">
+                        <i class="fas fa-redo"></i> Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ZONE DE RESULTATS -->
+        <div id="resultSection" class="result-section" style="display: none;">
+            <h2><i class="fas fa-check-circle"></i> Fichiers générés avec succès!</h2>
+            <div id="generatedFiles" class="generated-files"></div>
+            <div class="result-actions">
+                <button class="btn-primary" onclick="downloadAllFiles()">
+                    <i class="fas fa-download"></i> Tout télécharger (ZIP)
+                </button>
+                <button class="btn-secondary" onclick="newGeneration()">
+                    <i class="fas fa-plus"></i> Nouvelle génération
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/mt101-config.js"></script>
+    <script src="js/generator-core.js"></script>
+    <script src="js/generator-ui.js"></script>
+</body>
+
+</html>

@@ -94,11 +94,18 @@
     </div>
 
     <div class="test-section">
+        <h2>8. Test du Générateur Unifié (GeneratorCore - pain.001 / camt.054 / pacs.008)</h2>
+        <button class="btn" onclick="testUnifiedGenerator()">▶ Exécuter test</button>
+        <pre id="test8Result"></pre>
+    </div>
+
+    <div class="test-section">
         <button class="btn" onclick="runAllTests()" style="background: #4ec9b0; font-weight: bold;">▶▶ EXÉCUTER TOUS LES TESTS</button>
     </div>
 
     <script src="js/config.js"></script>
     <script src="js/mt103-generator.js"></script>
+    <script src="js/generator-core.js"></script>
 
     <script>
         function log(elementId, message, isPass = true) {
@@ -277,6 +284,90 @@
             }
         }
 
+        function testUnifiedGenerator() {
+            clear('test8Result');
+            try {
+                // Test 1: Parser
+                const rawOps = "REF1;2026-06-16;150000;XOF\nREF2;2026-06-16;-25000;EUR";
+                const ops = GeneratorCore.parseOperations(rawOps);
+                log('test8Result', `Parser - Nombre d'opérations extraites: ${ops.length}`, ops.length === 2);
+                log('test8Result', `Parser - Opération 1 ID: ${ops[0].id}`, ops[0].id === 'REF1');
+                log('test8Result', `Parser - Opération 2 Montant: ${ops[1].amount}`, ops[1].amount === -25000);
+                log('test8Result', `Parser - Opération 2 Devise: ${ops[1].currency}`, ops[1].currency === 'EUR');
+
+                // Instanciation GeneratorCore
+                const engine = new GeneratorCore({ filiale: 'CORIGNGN' });
+                log('test8Result', `Générateur - Filiale cible: ${engine.filiale.name} (${engine.filiale.currency})`, engine.filiale.currency === 'GNF');
+
+                // Test 2: pain.001
+                const testIBANs = ['GN0520100112345678901234'];
+                const painFiles = engine.generatePaymentFiles('pain.001', testIBANs, {
+                    fileCount: 1,
+                    transactionsPerFile: 1,
+                    minAmount: 50000,
+                    maxAmount: 100000,
+                    filePrefix: 'TEST_PAIN'
+                });
+                log('test8Result', `pain.001 - Fichiers générés: ${painFiles.length}`, painFiles.length === 1);
+                log('test8Result', `pain.001 - Extension de fichier XML: ${painFiles[0].name.endsWith('.xml')}`, painFiles[0].name.endsWith('.xml'));
+                log('test8Result', `pain.001 - Contenu XML valide: ${painFiles[0].content.includes('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.08">')}`, painFiles[0].content.includes('pain.001.001.08'));
+
+                // Test 3: camt.054 Credit
+                const camtFiles = engine.generateReportingFiles('camt.054', ops, {
+                    fileCount: 1,
+                    reportingType: 'credit',
+                    filePrefix: 'TEST_CAMT'
+                });
+                log('test8Result', `camt.054 - Fichiers générés: ${camtFiles.length}`, camtFiles.length === 1);
+                log('test8Result', `camt.054 - Contenu XML valide: ${camtFiles[0].content.includes('camt.054.001.08')}`, camtFiles[0].content.includes('camt.054.001.08'));
+
+                // Test 4: pacs.008 CBPR+ RECUS (Rapatriement)
+                const cbprRecusFiles = engine.generatePaymentFiles('pacs.008-cbpr-recus', testIBANs, {
+                    fileCount: 1,
+                    transactionsPerFile: 1,
+                    minAmount: 10000,
+                    maxAmount: 20000,
+                    cbprSenderBic: 'BARCGB2LXXXX',
+                    cbprOrderingAccount: 'GB99BARC123456',
+                    filePrefix: 'TEST_CBPR_RECUS'
+                });
+                const cbprRecusXml = cbprRecusFiles[0].content;
+                log('test8Result', `pacs.008 CBPR+ Recus - Contient BIC Banque Émettrice saisie: ${cbprRecusXml.includes('BARCGB2LXXXX')}`, cbprRecusXml.includes('BARCGB2LXXXX'));
+                log('test8Result', `pacs.008 CBPR+ Recus - Contient compte donneur d'ordre saisi: ${cbprRecusXml.includes('GB99BARC123456')}`, cbprRecusXml.includes('GB99BARC123456'));
+                log('test8Result', `pacs.008 CBPR+ Recus - Contient BIC de la filiale réceptrice: ${cbprRecusXml.includes('CORIGNGN')}`, cbprRecusXml.includes('CORIGNGN'));
+
+                // Test 5: pacs.008 CBPR+ EMIS (Transfert) et Structured Addresses (SSAO)
+                const cbprEmisFiles = engine.generatePaymentFiles('pacs.008-cbpr-emis', testIBANs, {
+                    fileCount: 1,
+                    transactionsPerFile: 1,
+                    minAmount: 10000,
+                    maxAmount: 20000,
+                    cbprDestBic: 'CHASUS33XXXX',
+                    cbprCoverBic: 'DEUTDEFFXXXX',
+                    cbprBeneficiaryAccount: 'US1234567890',
+                    ultimateDebtor: 'CORIS MOTHER SA',
+                    initiatingParty: 'INITIATOR INC',
+                    ultimateCreditor: 'FINAL BENEFICIARY LTD',
+                    filePrefix: 'TEST_CBPR_EMIS'
+                });
+                const cbprEmisXml = cbprEmisFiles[0].content;
+                log('test8Result', `pacs.008 CBPR+ Emis - Contient BIC de destination: ${cbprEmisXml.includes('CHASUS33XXXX')}`, cbprEmisXml.includes('CHASUS33XXXX'));
+                log('test8Result', `pacs.008 CBPR+ Emis - Contient BIC de couverture: ${cbprEmisXml.includes('DEUTDEFFXXXX')}`, cbprEmisXml.includes('DEUTDEFFXXXX'));
+                log('test8Result', `pacs.008 CBPR+ Emis - Contient compte bénéficiaire: ${cbprEmisXml.includes('US1234567890')}`, cbprEmisXml.includes('US1234567890'));
+                
+                // Test structured address SSAO
+                log('test8Result', `SSAO - Contient <PstlAdr> pour Ultimate Debtor: ${cbprEmisXml.includes('<UltmtDbtr>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>')}`, cbprEmisXml.includes('<UltmtDbtr>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>'));
+                log('test8Result', `SSAO - Contient <PstlAdr> pour Initiating Party: ${cbprEmisXml.includes('<InitgPty>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>')}`, cbprEmisXml.includes('<InitgPty>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>'));
+                log('test8Result', `SSAO - Contient <PstlAdr> pour Ultimate Creditor: ${cbprEmisXml.includes('<UltmtCdtr>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>')}`, cbprEmisXml.includes('<UltmtCdtr>') && cbprEmisXml.includes('<StrtNm>Rue des Jardins</StrtNm>'));
+                log('test8Result', `SSAO - Contient <Ctry> pour les acteurs: ${cbprEmisXml.includes('<Ctry>')}`, cbprEmisXml.includes('<Ctry>'));
+
+                log('test8Result', `\n--- Extrait XML pacs.008 CBPR+ Emis ---`, true);
+                log('test8Result', cbprEmisXml.substring(0, 400) + '...\n</Document>', true);
+            } catch (e) {
+                log('test8Result', 'Erreur: ' + e.message, false);
+            }
+        }
+
         function runAllTests() {
             testModules();
             setTimeout(() => testIBANValidation(), 100);
@@ -285,6 +376,7 @@
             setTimeout(() => testAmountFormatting(), 400);
             setTimeout(() => testMT103Generation(), 500);
             setTimeout(() => testMultipleGeneration(), 600);
+            setTimeout(() => testUnifiedGenerator(), 700);
         }
     </script>
 </body>

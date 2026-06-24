@@ -134,6 +134,17 @@ const FILIALES = {
         zone: 'CEMAC',
         city: 'Malabo',
         currency: 'XAF'
+    },
+    'CORIGNGN': {
+        name: 'Coris Guinée',
+        bic: 'CORIGNGN',
+        country: 'GN',
+        countryCode: 'GN052',
+        rtgsCode: 'GN00052',
+        fullName: 'CORIS BANK GUINEE',
+        zone: 'BCRG',
+        city: 'Conakry',
+        currency: 'GNF'
     }
 };
 
@@ -141,6 +152,7 @@ const FILIALES = {
 // BIC banques centrales
 const BCEAO_BIC = 'BCAOSNDPAXXX'; // Banque Centrale — UEMOA
 const BEAC_BIC = 'BEACCMCXXXX';  // Banque Centrale — CEMAC
+const BCRG_BIC = 'BCRGGNCONXXX';  // Banque Centrale — BCRG (Guinée)
 
 // Banques émettrices possibles dans la zone UEMOA (pour simulation)
 const SENDING_BANKS = [
@@ -214,9 +226,16 @@ function formatSwiftTime(date) {
 }
 
 // Générateur de référence unique SWIFT
+let lastReferenceTimestamp = "";
 function generateSwiftReference(prefix = 'O01SIP') {
     const timestamp = Date.now().toString().slice(-10);
-    return `${prefix}${timestamp}`;
+    let ref = `${prefix}${timestamp}`;
+    if (ref === lastReferenceTimestamp) {
+        const rand = Math.floor(Math.random() * 900 + 100).toString();
+        ref = ref.slice(0, -3) + rand;
+    }
+    lastReferenceTimestamp = ref;
+    return ref;
 }
 
 // Générateur de UUID pour le champ 121
@@ -238,30 +257,34 @@ function isValidIBAN(iban) {
     // Suppression des espaces
     iban = iban.replace(/\s/g, '');
 
-    // Vérification de la longueur (UEMOA: généralement 28 caractères)
+    // Vérification de la longueur (UEMOA/CEMAC/BCRG: généralement 28 caractères, max 34)
     if (iban.length < 15 || iban.length > 34) {
         return false;
     }
 
     // Vérification du format (commence par 2 lettres pays)
     const countryCode = iban.substring(0, 2);
-    const validCountries = ['BF', 'BJ', 'CI', 'GW', 'ML', 'NE', 'SN', 'TG'];
+    const validCountries = [
+        'BF', 'BJ', 'CI', 'GW', 'ML', 'NE', 'SN', 'TG', // UEMOA
+        'CM', 'CG', 'GA', 'TD', 'CF', 'GQ',             // CEMAC
+        'GN'                                            // BCRG
+    ];
 
     return validCountries.includes(countryCode);
 }
 
 // Formatage du montant SWIFT (format: 123456789,00)
 function formatSwiftAmount(amount) {
-    // Arrondir à l'entier le plus proche (XOF n'a pas de décimales)
+    // Arrondir à l'entier le plus proche (XOF/XAF n'ont pas de décimales)
     const roundedAmount = Math.round(amount);
     return `${roundedAmount},`;
 }
 
 // Générateur de montant aléatoire
 function generateRandomAmount(min, max) {
-    // Génère un montant arrondi aux milliers
-    const amount = Math.floor(Math.random() * (max - min + 1)) + min;
-    return Math.round(amount / 1000) * 1000;
+    // Génère un montant aléatoire
+    const amount = Math.random() * (max - min) + min;
+    return Math.round(amount / 100) * 100;
 }
 
 // Sélection aléatoire dans un tableau
@@ -273,6 +296,7 @@ function getRandomItem(array) {
 window.FILIALES = FILIALES;
 window.BCEAO_BIC = BCEAO_BIC;
 window.BEAC_BIC = BEAC_BIC;
+window.BCRG_BIC = BCRG_BIC;
 window.SENDING_BANKS = SENDING_BANKS;
 window.CLIENT_NAMES = CLIENT_NAMES;
 window.PAYMENT_PURPOSES = PAYMENT_PURPOSES;
